@@ -1,7 +1,7 @@
 # Проект «Киноман»
 
-* Студент: [Матвей Денисов](https://up.htmlacademy.ru/ecmascript/17/user/2045575).
-* Наставник: `Неизвестно`.
+* Студент: [Матвей Денисов](https://htmlacademy.ru/profile/id2045575).
+* Наставник: [Артём Рудов](https://htmlacademy.ru/profile/artrudov).
 
 ---
 
