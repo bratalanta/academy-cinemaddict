@@ -21,4 +21,14 @@ const truncFilmDescription = (description) => {
 
 const getRandomInteger = (min, max) => min + Math.floor(Math.random() * (max - min));
 
-export {humanizeDate, normalizeFilmRuntime, truncFilmDescription, getRandomInteger};
+const getRandomIntegerArray = (maxLength, maxNum) => {
+  const resArray = [];
+
+  for (let i = 0; i < maxLength; i++) {
+    resArray.push(`${getRandomInteger(0, maxNum)}`);
+  }
+
+  return resArray;
+};
+
+export {humanizeDate, normalizeFilmRuntime, truncFilmDescription, getRandomInteger, getRandomIntegerArray};
