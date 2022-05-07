@@ -33,13 +33,8 @@ export default class FilmsPresenter {
     render(this.#filmsListComponent, this.#filmsComponent.element);
     render(this.#filmsListContainerComponent, this.#filmsListComponent.element);
 
-    const getFilmComments = (film) => this.#filmsModel.comments
-      .filter(({id}) => film.comments.includes(id));
-
     for (let i = 0; i < this.#films.length; i++) {
-      const comments = getFilmComments(this.#films[i]);
-
-      this.#renderFilm(this.#films[i], comments);
+      this.#renderFilm(this.#films[i], this.#filmsModel.comments);
     }
 
     render(new ShowMoreButtonView(), this.#filmsListComponent.element);
@@ -53,31 +48,30 @@ export default class FilmsPresenter {
     const onEscKeyDown = (evt) => {
       if (evt.key === 'Escape') {
         appBodyElement.removeChild(popupComponent.element);
-
         document.removeEventListener('keydown', onEscKeyDown);
       }
     };
 
     const renderPopup = () => {
       appBodyElement.classList.add('hide-overflow');
-
       document.addEventListener('keydown', onEscKeyDown);
-
       render(popupComponent, appBodyElement);
     };
 
     filmCardComponent.element.addEventListener('click', (evt) => {
       const {target} = evt;
 
-      if (!target.matches('button')) {
-        const previousPopup = appBodyElement.querySelector('.film-details');
-
-        if (previousPopup) {
-          appBodyElement.removeChild(previousPopup);
-        }
-
-        renderPopup();
+      if (target.matches('button')) {
+        return;
       }
+
+      const previousPopup = appBodyElement.querySelector('.film-details');
+
+      if (previousPopup) {
+        appBodyElement.removeChild(previousPopup);
+      }
+
+      renderPopup();
     });
 
     const onPopupClose = () => {
