@@ -1,12 +1,17 @@
+import { getRandomInteger, getRandomIntegerArray } from '../utils.js';
+
+const MIN_RATE = 0;
+const MAX_RATE = 10;
+const MAX_COMMENTS_LENGTH = 5;
+const MAX_COMMENT_ID = 10;
+
 export const generateFilm = (k) => ({
   id: `${k}`,
-  comments: [
-    '5', '7', '9', '3'
-  ],
+  comments: getRandomIntegerArray(MAX_COMMENTS_LENGTH, MAX_COMMENT_ID),
   filmInfo: {
     title: 'A Little Pony Without The Carpet',
     alternativeTitle: 'Laziness Who Sold Themselves',
-    totalRating: 5.3,
+    totalRating: getRandomInteger(MIN_RATE, MAX_RATE),
     poster: 'images/posters/the-man-with-the-golden-arm.jpg',
     ageRating: 0,
     director: 'Tom Ford',
