@@ -4,7 +4,7 @@ const HOUR_IN_MIN = 60;
 const MAX_DESCRIPTION_LENGTH = 140;
 const ELLIPSIS_SIGN = '…';
 
-const humanizeDate = (date, format) => dayjs(date).format(format);
+const humanizeFilmDate = (date, format) => dayjs(date).format(format);
 
 const normalizeFilmRuntime = (runtime) => {
   const hours = Math.floor(runtime / HOUR_IN_MIN);
@@ -19,16 +19,4 @@ const truncFilmDescription = (description) => {
   }
 };
 
-const getRandomInteger = (min, max) => min + Math.floor(Math.random() * (max - min));
-
-const getRandomIntegerArray = (maxLength, maxNum) => {
-  const resArray = [];
-
-  for (let i = 0; i < maxLength; i++) {
-    resArray.push(`${getRandomInteger(0, maxNum)}`);
-  }
-
-  return resArray;
-};
-
-export {humanizeDate, normalizeFilmRuntime, truncFilmDescription, getRandomInteger, getRandomIntegerArray};
+export {humanizeFilmDate, normalizeFilmRuntime, truncFilmDescription};

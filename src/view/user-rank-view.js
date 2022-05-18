@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createUserRankTemplate = () => (
   `<section class="header__profile profile">
@@ -7,22 +7,8 @@ const createUserRankTemplate = () => (
    </section>`
 );
 
-export default class UserRankView {
-  #element = null;
-
+export default class UserRankView extends AbstractView {
   get template() {
     return createUserRankTemplate;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }
