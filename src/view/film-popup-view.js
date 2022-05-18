@@ -1,5 +1,5 @@
-import { createElement } from '../render.js';
-import { humanizeDate, normalizeFilmRuntime } from '../utils.js';
+import { humanizeFilmDate, normalizeFilmRuntime } from '../utils/film.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createFilmPopupTemplate = (film, comments) => {
   const {filmInfo, userDetails} = film;
@@ -33,7 +33,7 @@ const createFilmPopupTemplate = (film, comments) => {
                        <p class="film-details__comment-text">${comment}</p>
                        <p class="film-details__comment-info">
                          <span class="film-details__comment-author">${author}</span>
-                         <span class="film-details__comment-day">${humanizeDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
+                         <span class="film-details__comment-day">${humanizeFilmDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
                          <button class="film-details__comment-delete">Delete</button>
                        </p>
                      </div>
@@ -83,7 +83,7 @@ const createFilmPopupTemplate = (film, comments) => {
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Release Date</td>
-                <td class="film-details__cell">${humanizeDate(releaseDate, 'DD MMMM YYYY')}</td>
+                <td class="film-details__cell">${humanizeFilmDate(releaseDate, 'DD MMMM YYYY')}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Runtime</td>
@@ -153,27 +153,27 @@ const createFilmPopupTemplate = (film, comments) => {
   </section>`;
 };
 
-export default class FilmPopupView {
+export default class FilmPopupView extends AbstractView {
   constructor(film, comments) {
+    super();
     this.film = film;
     this.comments = comments;
   }
-
-  #element = null;
 
   get template() {
     return createFilmPopupTemplate(this.film, this.comments);
   }
 
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
+  setCloseButtonClickHandler = (cb) => {
+    this._callback.click = cb;
+    const popupCloseButton = this.element.querySelector('.film-details__close-btn');
 
-    return this.#element;
-  }
+    popupCloseButton.addEventListener('click', this.#closeButtonClickHandler);
+  };
 
-  removeElement() {
-    this.#element = null;
-  }
+  #closeButtonClickHandler = (evt) => {
+    evt.preventDefault();
+
+    this._callback.click();
+  };
 }

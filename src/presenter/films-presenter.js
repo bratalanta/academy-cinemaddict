@@ -3,7 +3,7 @@ import FilmsListView from '../view/films-list-view.js';
 import FilmsListContainerView from '../view/films-list-container-view.js';
 import FilmCardView from '../view/film-card-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
-import { render } from '../render.js';
+import { remove, render } from '../framework/render.js';
 import FilmPopupView from '../view/film-popup-view.js';
 import FilmsEmptyListView from '../view/films-empty-list-view.js';
 
@@ -56,21 +56,19 @@ export default class FilmsPresenter {
       this.#renderedFilmsAmount += MAX_FILMS_AMOUNT_PER_STEP;
 
       if (this.#renderedFilmsAmount >= this.#films.length) {
-        this.#showMoreButtonComponent.element.remove();
-        this.#showMoreButtonComponent.removeElement();
+        remove(this.#showMoreButtonComponent);
       }
     };
 
     if (this.#films.length > MAX_FILMS_AMOUNT_PER_STEP) {
       render(this.#showMoreButtonComponent, this.#filmsListComponent.element);
-      this.#showMoreButtonComponent.element.addEventListener('click', onShowMoreButtonClick);
+      this.#showMoreButtonComponent.setClickHandler(onShowMoreButtonClick);
     }
   };
 
   #renderFilm = (film, comments) => {
     const filmCardComponent = new FilmCardView(film);
     const popupComponent = new FilmPopupView(film, comments);
-    const popupCloseButton = popupComponent.element.querySelector('.film-details__close-btn');
 
     const onEscKeyDown = (evt) => {
       if (evt.key === 'Escape') {
@@ -85,7 +83,7 @@ export default class FilmsPresenter {
       render(popupComponent, appBodyElement);
     };
 
-    filmCardComponent.element.addEventListener('click', (evt) => {
+    const onFilmCardClick = (evt) => {
       const {target} = evt;
 
       if (target.matches('button')) {
@@ -99,14 +97,16 @@ export default class FilmsPresenter {
       }
 
       renderPopup();
-    });
+    };
+
+    filmCardComponent.setClickHandler(onFilmCardClick);
 
     const onPopupClose = () => {
       appBodyElement.classList.remove('hide-overflow');
       appBodyElement.removeChild(popupComponent.element);
     };
 
-    popupCloseButton.addEventListener('click', onPopupClose);
+    popupComponent.setCloseButtonClickHandler(onPopupClose);
 
     render(filmCardComponent, this.#filmsListContainerComponent.element);
   };

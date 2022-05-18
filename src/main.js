@@ -1,6 +1,6 @@
 import FilmsModel from './model/films-model.js';
 import FilmsPresenter from './presenter/films-presenter.js';
-import { render } from './render.js';
+import { render } from './framework/render.js';
 import FilterView from './view/filter-view.js';
 import UserRankView from './view/user-rank-view.js';
 
