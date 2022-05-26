@@ -1,12 +1,13 @@
 import { getRandomInteger, getRandomIntegerArray } from '../utils/common.js';
+import {nanoid} from 'nanoid';
 
 const MIN_RATE = 0;
 const MAX_RATE = 10;
 const MAX_COMMENTS_LENGTH = 5;
 const MAX_COMMENT_ID = 10;
 
-export const generateFilm = (k) => ({
-  id: `${k}`,
+export const generateFilm = () => ({
+  id: nanoid(),
   comments: getRandomIntegerArray(MAX_COMMENTS_LENGTH, MAX_COMMENT_ID),
   filmInfo: {
     title: 'A Little Pony Without The Carpet',
