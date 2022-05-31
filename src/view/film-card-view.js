@@ -31,6 +31,8 @@ const createFilmCardTemplate = (film) => {
 };
 
 export default class FilmCardView extends AbstractView {
+  #popupScrollPosition = null;
+
   constructor(film) {
     super();
     this.film = film;

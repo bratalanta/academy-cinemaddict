@@ -21,8 +21,6 @@ export default class FilmPresenter {
   #filmCardComponent = null;
   #popupComponent = null;
 
-  #popupScrollPosition = null;
-
   constructor (filmsListContainer, changeData, changePopupMode) {
     this.#filmsListContainer = filmsListContainer;
     this.#changeData = changeData;
@@ -58,7 +56,7 @@ export default class FilmPresenter {
 
     if (this.#mode === Mode.OPENED) {
       replace(this.#popupComponent, prevPopupComponent);
-      this.#popupComponent.element.scrollTop = this.#popupScrollPosition;
+      // this.#popupComponent.element.scrollTop = this.#popupScrollPosition;
     }
 
     remove(prevFilmCardComponent);
@@ -72,6 +70,7 @@ export default class FilmPresenter {
 
   #onEscKeyDown = (evt) => {
     if (evt.key === 'Escape') {
+      this.#popupComponent.reset();
       document.removeEventListener('keydown', this.#onEscKeyDown);
       appBodyElement.classList.remove('hide-overflow');
       appBodyElement.removeChild(this.#popupComponent.element);
@@ -88,13 +87,9 @@ export default class FilmPresenter {
 
   resetPopup = () => {
     if (this.#mode === Mode.OPENED) {
+      this.#popupComponent.reset();
       this.#closePopup();
     }
-  };
-
-  #onFilmCardClick = () => {
-    this.#changePopupMode();
-    this.#renderPopup();
   };
 
   #closePopup = () => {
@@ -103,9 +98,12 @@ export default class FilmPresenter {
     this.#mode = Mode.CLOSED;
   };
 
-  #onWatchlistClick = () => {
-    this.#popupScrollPosition = this.#popupComponent.element.scrollTop;
+  #onFilmCardClick = () => {
+    this.#changePopupMode();
+    this.#renderPopup();
+  };
 
+  #onWatchlistClick = () => {
     this.#changeData(
       {
         ...this.#film,
@@ -115,8 +113,6 @@ export default class FilmPresenter {
   };
 
   #onAlreadyWatchedClick = () => {
-    this.#popupScrollPosition = this.#popupComponent.element.scrollTop;
-
     this.#changeData(
       {
         ...this.#film,
@@ -126,8 +122,6 @@ export default class FilmPresenter {
   };
 
   #onFavoriteClick = () => {
-    this.#popupScrollPosition = this.#popupComponent.element.scrollTop;
-
     this.#changeData(
       {
         ...this.#film,
