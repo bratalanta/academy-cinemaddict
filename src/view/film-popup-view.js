@@ -22,29 +22,25 @@ const getActiveControlButtonClassName = (userDetail) => userDetail ? 'film-detai
 
 const addEmojiLabelImage = (emojiValue) => emojiValue ? `<img src="images/emoji/${emojiValue}.png" width="55" height="55" alt="emoji-${emojiValue}">` : '';
 
-const createPopupCommentsTemplate = (comments) => {
-  let template = '';
+const createPopupCommentsTemplate = (comments) => (
+  comments.map((item) => {
+    const {author, comment, date: commentDate, emotion} = item;
 
-  for (const elem of comments) {
-    const {author, comment, date: commentDate, emotion} = elem;
-
-    template += `<li class="film-details__comment">
-                   <span class="film-details__comment-emoji">
-                     <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="emoji-${emotion}">
-                   </span>
-                   <div>
-                     <p class="film-details__comment-text">${comment}</p>
-                     <p class="film-details__comment-info">
-                       <span class="film-details__comment-author">${author}</span>
-                       <span class="film-details__comment-day">${humanizeFilmDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
-                       <button class="film-details__comment-delete">Delete</button>
-                     </p>
-                   </div>
-                 </li>`;
-  }
-
-  return template;
-};
+    return `<li class="film-details__comment">
+              <span class="film-details__comment-emoji">
+                <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="emoji-${emotion}">
+              </span>
+              <div>
+                <p class="film-details__comment-text">${comment}</p>
+                <p class="film-details__comment-info">
+                  <span class="film-details__comment-author">${author}</span>
+                  <span class="film-details__comment-day">${humanizeFilmDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
+                  <button class="film-details__comment-delete">Delete</button>
+                </p>
+              </div>
+            </li>`;
+  }).join('')
+);
 
 const createEmojisTemplate = (selectedEmoji) => (
   EMOJIS.map((emojiName) =>

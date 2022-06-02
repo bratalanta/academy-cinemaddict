@@ -1,4 +1,4 @@
-import { getRandomInteger, getRandomIntegerArray } from '../utils/common.js';
+import { getRandomBoolean, getRandomInteger, getRandomIntegerArray } from '../utils/common.js';
 import {nanoid} from 'nanoid';
 
 const MIN_RATE = 0;
@@ -33,9 +33,9 @@ export const generateFilm = () => ({
     description: 'Oscar-winning film, a war drama about two young people, from the creators of timeless classic "Nu, Pogodi!" and "Alice in Wonderland", with the best fight scenes since Bruce Lee.'
   },
   userDetails: {
-    watchlist: true,
-    alreadyWatched: false,
+    watchlist: getRandomBoolean(),
+    alreadyWatched: getRandomBoolean(),
     watchingDate: '2019-04-12T16:12:32.554Z',
-    favorite: true
+    favorite: getRandomBoolean()
   }
 });
