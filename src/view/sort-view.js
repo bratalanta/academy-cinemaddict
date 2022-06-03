@@ -6,8 +6,6 @@ const SortType = {
   RATING: 'rating'
 };
 
-// const getSortButtonActiveClassName = (sortType) => sortType
-
 const createSortViewTemplate = () => (
   `<ul class="sort">
     <li><a href="#" class="sort__button sort__button--active" data-sort-type="${SortType.DEFAULT}">Sort by default</a></li>
