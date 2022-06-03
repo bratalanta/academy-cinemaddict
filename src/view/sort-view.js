@@ -8,18 +8,17 @@ const SortType = {
 
 // const getSortButtonActiveClassName = (sortType) => sortType
 
-const createSortViewTemplate = () => {
-  const res = 'date';
-  return `<ul class="sort">
+const createSortViewTemplate = () => (
+  `<ul class="sort">
     <li><a href="#" class="sort__button sort__button--active" data-sort-type="${SortType.DEFAULT}">Sort by default</a></li>
-    <li><a href="#" class="sort__button" data-sort-type="${res}">Sort by date</a></li>
+    <li><a href="#" class="sort__button" data-sort-type="${SortType.DATE}">Sort by date</a></li>
     <li><a href="#" class="sort__button" data-sort-type="${SortType.RATING}">Sort by rating</a></li>
-   </ul>`;
-};
+   </ul>`
+);
 
 export default class SortView extends AbstractView {
   get template() {
-    return createSortViewTemplate;
+    return createSortViewTemplate();
   }
 
   setSortTypeChangeHandler = (cb) => {
@@ -33,10 +32,9 @@ export default class SortView extends AbstractView {
     if (target.tagName !== 'A') {
       return;
     }
-    console.log(target)
+
     evt.preventDefault();
     this._callback.sortTypeChange(target.dataset.sortType);
-    console.log(target.dataset.sortType)
   };
 }
 

@@ -7,7 +7,7 @@ import FilmsEmptyListView from '../view/films-empty-list-view.js';
 import FilmPresenter from './film-presenter.js';
 import { updateItem } from '../utils/common.js';
 import SortView, { SortType } from '../view/sort-view.js';
-import { sortByDate } from '../utils/sort.js';
+import { sortByDate, sortByRating } from '../utils/sort.js';
 
 const MAX_FILMS_AMOUNT_PER_STEP = 5;
 
@@ -91,12 +91,22 @@ export default class FilmsListPresenter {
   };
 
   #onSortTypeChange = (sortType) => {
-    console.log(sortType)
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+
     switch (sortType) {
       case SortType.DATE:
         this.#films.sort(sortByDate);
         break;
+      case SortType.RATING:
+        this.#films.sort(sortByRating);
+        break;
+      default:
+        this.#films = [...this.#originalOrderedFilms];
     }
+
+    this.#currentSortType = sortType;
 
     this.#clearFilmsList();
     this.#renderFilmsList();

@@ -8,6 +8,6 @@ const createFilmsListTemplate = () => (
 
 export default class FilmsListView extends AbstractView {
   get template() {
-    return createFilmsListTemplate;
+    return createFilmsListTemplate();
   }
 }
