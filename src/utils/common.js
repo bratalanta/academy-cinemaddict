@@ -1,4 +1,7 @@
-const getRandomInteger = (min, max) => min + Math.floor(Math.random() * (max - min));
+const FALSE_VALUE = 0;
+const TRUE_VALUE = 1;
+
+const getRandomInteger = (min, max) => min + Math.round(Math.random() * (max - min));
 
 const getRandomIntegerArray = (maxLength, maxNum) => {
   const resArray = [];
@@ -8,6 +11,14 @@ const getRandomIntegerArray = (maxLength, maxNum) => {
   }
 
   return resArray;
+};
+
+const getRandomBoolean = () => {
+  if (getRandomInteger(FALSE_VALUE, TRUE_VALUE) === FALSE_VALUE) {
+    return false;
+  }
+
+  return true;
 };
 
 const updateItem = (items, update) => {
@@ -24,4 +35,4 @@ const updateItem = (items, update) => {
   ];
 };
 
-export {getRandomInteger, getRandomIntegerArray, updateItem};
+export {getRandomInteger, getRandomIntegerArray, updateItem, getRandomBoolean};
