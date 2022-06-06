@@ -3,6 +3,8 @@ import {nanoid} from 'nanoid';
 
 const MIN_RATE = 0;
 const MAX_RATE = 10;
+const MIN_YEAR = 2000;
+const MAX_YEAR = 2022;
 const MAX_COMMENTS_LENGTH = 5;
 const MAX_COMMENT_ID = 10;
 
@@ -23,7 +25,7 @@ export const generateFilm = () => ({
       'Morgan Freeman'
     ],
     release: {
-      date: '2019-05-11T00:00:00.000Z',
+      date: `${getRandomInteger(MIN_YEAR, MAX_YEAR)}-05-11T00:00:00.000Z`,
       releaseCountry: 'Finland'
     },
     runtime: 77,

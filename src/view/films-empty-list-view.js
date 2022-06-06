@@ -4,6 +4,6 @@ const createFilmsEmptyListTemplate = () => '<h2 class="films-list__title">There 
 
 export default class FilmsEmptyListView extends AbstractView {
   get template() {
-    return createFilmsEmptyListTemplate;
+    return createFilmsEmptyListTemplate();
   }
 }
