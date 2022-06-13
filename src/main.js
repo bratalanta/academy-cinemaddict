@@ -1,18 +1,22 @@
 import FilmsModel from './model/films-model.js';
-import FilmsListPresenter from './presenter/films-list-presenter.js';
+import BoardPresenter from './presenter/board-presenter.js';
 import { render } from './framework/render.js';
-import FilterView from './view/filter-view.js';
 import UserRankView from './view/user-rank-view.js';
-import { generateFilter } from './mock/filter.js';
+import CommentsModel from './model/comments-model.js';
+import FilterModel from './model/filter-model.js';
+import FilterPresenter from './presenter/filter-presenter.js';
 
 const appMainElement = document.querySelector('.main');
 const appHeaderElement = document.querySelector('.header');
-const filmsModel = new FilmsModel();
-const filmsPresenter = new FilmsListPresenter(appMainElement, filmsModel);
 
-const filters = generateFilter(filmsModel.films);
+const filmsModel = new FilmsModel();
+const commentsModel = new CommentsModel();
+const filterModel = new FilterModel();
+
+const boardPresenter = new BoardPresenter(appMainElement, filmsModel, commentsModel, filterModel);
+const filterPresenter = new FilterPresenter(appMainElement, filterModel, filmsModel);
 
 render(new UserRankView(), appHeaderElement);
-render(new FilterView(filters), appMainElement);
 
-filmsPresenter.init();
+filterPresenter.init();
+boardPresenter.init();

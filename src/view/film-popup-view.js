@@ -1,5 +1,8 @@
 import { humanizeFilmDate, normalizeFilmRuntime } from '../utils/film.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { getRandomInteger } from '../utils/common.js';
+import { MAX_DATE, MAX_ID, MIN_DATE, MIN_ID } from '../mock/comment.js';
+import he from 'he';
 
 const EMOJIS = [
   'smile',
@@ -24,18 +27,18 @@ const addEmojiLabelImage = (emojiValue) => emojiValue ? `<img src="images/emoji/
 
 const createPopupCommentsTemplate = (comments) => (
   comments.map((item) => {
-    const {author, comment, date: commentDate, emotion} = item;
+    const {author, comment, date: commentDate, emotion, id} = item;
 
     return `<li class="film-details__comment">
               <span class="film-details__comment-emoji">
                 <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="emoji-${emotion}">
               </span>
               <div>
-                <p class="film-details__comment-text">${comment}</p>
+                <p class="film-details__comment-text">${he.encode(comment)}</p>
                 <p class="film-details__comment-info">
                   <span class="film-details__comment-author">${author}</span>
                   <span class="film-details__comment-day">${humanizeFilmDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
-                  <button class="film-details__comment-delete">Delete</button>
+                  <button class="film-details__comment-delete" data-id="${id}">Delete</button>
                 </p>
               </div>
             </li>`;
@@ -176,6 +179,10 @@ export default class FilmPopupView extends AbstractStatefulView {
     return createFilmPopupTemplate(this.#film, this.#comments, this._state);
   }
 
+  get scrollPosition() {
+    return this.#popupScrollPosition;
+  }
+
   reset = () => {
     this.updateElement(
       {
@@ -198,6 +205,22 @@ export default class FilmPopupView extends AbstractStatefulView {
     this.setWatchlistClickHandler(this._callback.watchlistClick);
     this.setAlreadyWatchedClickHandler(this._callback.alreadyWatchedClick);
     this.setFavoriteClickHandler(this._callback.favoriteClick);
+    this.setDeleteButtonClickHandler(this._callback.deleteButtonClick);
+    this.setCommentAddHandler(this._callback.commentAdd);
+  };
+
+  setCommentAddHandler = (cb) => {
+    this._callback.commentAdd = cb;
+    const commentTextarea = this.element.querySelector('.film-details__comment-input');
+
+    commentTextarea.addEventListener('keydown', this.#commentAddHandler);
+  };
+
+  setDeleteButtonClickHandler = (cb) => {
+    this._callback.deleteButtonClick = cb;
+    const commentsList = this.element.querySelector('.film-details__comments-list');
+
+    commentsList.addEventListener('click', this.#deleteButtonClickHandler);
   };
 
   setCloseButtonClickHandler = (cb) => {
@@ -226,6 +249,34 @@ export default class FilmPopupView extends AbstractStatefulView {
 
     this.element.querySelector('.film-details__control-button--favorite')
       .addEventListener('click', this.#favoriteClickHandler);
+  };
+
+  #commentAddHandler = (evt) => {
+    const selectedEmoji = this._state.selectedEmoji;
+    const {target} = evt;
+
+    if (evt.key === 'Enter' && evt.ctrlKey && selectedEmoji && target.value) {
+      evt.preventDefault();
+
+      const newComment = {
+        id: `${getRandomInteger(MIN_ID, MAX_ID)}`,
+        author: 'Matvei Denisov',
+        comment: target.value,
+        date: `${getRandomInteger(MIN_DATE, MAX_DATE)}-05-11T16:12:32.554Z`,
+        emotion: selectedEmoji
+      };
+
+      this._callback.commentAdd(newComment);
+    }
+  };
+
+  #deleteButtonClickHandler = (evt) => {
+    evt.preventDefault();
+    const {target} = evt;
+
+    if (target.matches('.film-details__comment-delete')) {
+      this._callback.deleteButtonClick(target.dataset.id);
+    }
   };
 
   #closeButtonClickHandler = (evt) => {
@@ -266,7 +317,6 @@ export default class FilmPopupView extends AbstractStatefulView {
 
   #watchlistClickHandler = (evt) => {
     evt.preventDefault();
-
     this._callback.watchlistClick();
   };
 
