@@ -1,8 +1,9 @@
 import { humanizeFilmDate, normalizeFilmRuntime } from '../utils/film.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { getRandomInteger } from '../utils/common.js';
-import { MAX_DATE, MAX_ID, MIN_DATE, MIN_ID } from '../mock/comment.js';
+import { MAX_DATE, MIN_DATE } from '../mock/comment.js';
 import he from 'he';
+import { nanoid } from 'nanoid';
 
 const EMOJIS = [
   'smile',
@@ -259,7 +260,7 @@ export default class FilmPopupView extends AbstractStatefulView {
       evt.preventDefault();
 
       const newComment = {
-        id: `${getRandomInteger(MIN_ID, MAX_ID)}`,
+        id: `${nanoid()}`,
         author: 'Matvei Denisov',
         comment: target.value,
         date: `${getRandomInteger(MIN_DATE, MAX_DATE)}-05-11T16:12:32.554Z`,

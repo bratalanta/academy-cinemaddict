@@ -2,7 +2,7 @@ import { generateComment } from '../mock/comment.js';
 import Observable from '../framework/observable.js';
 
 export default class CommentsModel extends Observable {
-  #comments = Array.from({length: 5}, generateComment);
+  #comments = Array.from({length: 10}, generateComment);
 
   get comments() {
     return this.#comments;

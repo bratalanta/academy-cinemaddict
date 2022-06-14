@@ -1,16 +1,27 @@
-import { getRandomBoolean, getRandomInteger, getRandomIntegerArray } from '../utils/common.js';
+import { getRandomBoolean, getRandomInteger } from '../utils/common.js';
 import {nanoid} from 'nanoid';
 
 const MIN_RATE = 0;
 const MAX_RATE = 10;
 const MIN_YEAR = 2000;
 const MAX_YEAR = 2022;
-const MAX_COMMENTS_LENGTH = 5;
-const MAX_COMMENT_ID = 10;
+
+const uniqueIds = [
+  '0',
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9'
+];
 
 export const generateFilm = () => ({
   id: nanoid(),
-  comments: getRandomIntegerArray(MAX_COMMENTS_LENGTH, MAX_COMMENT_ID),
+  comments: uniqueIds,
   filmInfo: {
     title: 'A Little Pony Without The Carpet',
     alternativeTitle: 'Laziness Who Sold Themselves',

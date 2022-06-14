@@ -2,7 +2,7 @@ import { generateFilm } from '../mock/film.js';
 import Observable from '../framework/observable.js';
 
 export default class FilmsModel extends Observable {
-  #films = Array.from({length: 1}, generateFilm);
+  #films = Array.from({length: 21}, generateFilm);
 
   get films() {
     return this.#films;
@@ -39,10 +39,13 @@ export default class FilmsModel extends Observable {
   };
 
   deleteComment = (updateType, update) => {
-    const {commentId: commentUpdateId} = update;
+    const {commentId: commentUpdateId, id: filmUpdateId} = update;
 
     this.#films.map((film) => {
-      film.comments = film.comments.filter((commentId) => commentId !== commentUpdateId);
+      if (filmUpdateId === film.id) {
+        film.comments = film.comments.filter((commentId) => commentId !== commentUpdateId);
+      }
+
       return film;
     });
 
