@@ -1,6 +1,7 @@
 import FilmPopupView from '../view/film-popup-view.js';
 import FilmCardView from '../view/film-card-view.js';
 import { remove, render, replace } from '../framework/render.js';
+import { UpdateType, UserAction } from '../const.js';
 
 const Mode = {
   CLOSED: 'CLOSED',
@@ -12,7 +13,8 @@ const appBodyElement = document.body;
 export default class FilmPresenter {
   #film = null;
   #comments = null;
-  #changeData = null;
+  #changeFilmData = null;
+  #changeCommentData = null;
   #changePopupMode = null;
   #mode = Mode.CLOSED;
 
@@ -21,9 +23,10 @@ export default class FilmPresenter {
   #filmCardComponent = null;
   #popupComponent = null;
 
-  constructor (filmsListContainer, changeData, changePopupMode) {
+  constructor (filmsListContainer, changeFilmData, changeCommentData, changePopupMode) {
     this.#filmsListContainer = filmsListContainer;
-    this.#changeData = changeData;
+    this.#changeFilmData = changeFilmData;
+    this.#changeCommentData = changeCommentData;
     this.#changePopupMode = changePopupMode;
   }
 
@@ -46,6 +49,8 @@ export default class FilmPresenter {
     this.#popupComponent.setWatchlistClickHandler(this.#onWatchlistClick);
     this.#popupComponent.setAlreadyWatchedClickHandler(this.#onAlreadyWatchedClick);
     this.#popupComponent.setFavoriteClickHandler(this.#onFavoriteClick);
+    this.#popupComponent.setDeleteButtonClickHandler(this.#onDeleteButtonClick);
+    this.#popupComponent.setCommentAddHandler(this.#onCommentAdd);
 
     if (prevFilmCardComponent === null || prevPopupComponent === null) {
       render(this.#filmCardComponent, this.#filmsListContainer);
@@ -84,6 +89,13 @@ export default class FilmPresenter {
     this.#mode = Mode.OPENED;
   };
 
+  updatePopup = (popupMode, popupScrollPosition) => {
+    if (popupMode === Mode.OPENED) {
+      this.#renderPopup();
+      this.#popupComponent.element.scrollTop = popupScrollPosition;
+    }
+  };
+
   resetPopup = () => {
     if (this.#mode === Mode.OPENED) {
       this.#popupComponent.reset();
@@ -97,35 +109,86 @@ export default class FilmPresenter {
     this.#mode = Mode.CLOSED;
   };
 
+  #onCommentAdd = (newComment) => {
+    this.#changeCommentData(
+      UserAction.ADD_COMMENT,
+      UpdateType.MINOR,
+      {
+        newComment,
+        id: this.#film.id,
+        popupMode: this.#mode,
+        popupScrollPosition: this.#popupComponent.element.scrollTop
+      }
+    );
+  };
+
+  #onDeleteButtonClick = (commentId) => {
+    this.#changeCommentData(
+      UserAction.DELETE_COMMENT,
+      UpdateType.MINOR,
+      {
+        commentId,
+        id: this.#film.id,
+        popupMode: this.#mode,
+        popupScrollPosition: this.#popupComponent.element.scrollTop
+      }
+    );
+  };
+
   #onFilmCardClick = () => {
-    this.#changePopupMode();
-    this.#renderPopup();
+    if (this.#mode === Mode.CLOSED) {
+      this.#changePopupMode();
+      this.#renderPopup();
+    }
   };
 
   #onWatchlistClick = () => {
-    this.#changeData(
+    this.#changeFilmData(
+      UserAction.UPDATE_FILM,
+      UpdateType.MINOR,
       {
         ...this.#film,
-        userDetails: {...this.#film.userDetails, watchlist: !this.#film.userDetails.watchlist}
-      },
-      this.#comments);
+        userDetails:
+        {
+          ...this.#film.userDetails,
+          watchlist: !this.#film.userDetails.watchlist
+        },
+        popupMode: this.#mode,
+        popupScrollPosition: this.#popupComponent.element.scrollTop
+      }
+    );
   };
 
   #onAlreadyWatchedClick = () => {
-    this.#changeData(
+    this.#changeFilmData(
+      UserAction.UPDATE_FILM,
+      UpdateType.MINOR,
       {
         ...this.#film,
-        userDetails: {...this.#film.userDetails, alreadyWatched: !this.#film.userDetails.alreadyWatched}
-      },
-      this.#comments);
+        userDetails:
+        {...this.#film.userDetails,
+          alreadyWatched: !this.#film.userDetails.alreadyWatched
+        },
+        popupMode: this.#mode,
+        popupScrollPosition: this.#popupComponent.element.scrollTop
+      }
+    );
   };
 
   #onFavoriteClick = () => {
-    this.#changeData(
+    this.#changeFilmData(
+      UserAction.UPDATE_FILM,
+      UpdateType.MINOR,
       {
         ...this.#film,
-        userDetails: {...this.#film.userDetails, favorite: !this.#film.userDetails.favorite}
-      },
-      this.#comments);
+        userDetails:
+        {
+          ...this.#film.userDetails,
+          favorite: !this.#film.userDetails.favorite
+        },
+        popupMode: this.#mode,
+        popupScrollPosition: this.#popupComponent.element.scrollTop
+      }
+    );
   };
 }

@@ -1,4 +1,4 @@
-const FilterTypes = {
+const FilterType = {
   ALL: 'All',
   WATCHLIST: 'Watchlist',
   ALREADYWATCHED: 'History',
@@ -6,10 +6,10 @@ const FilterTypes = {
 };
 
 const filter = {
-  [FilterTypes.ALL]: (films) => films,
-  [FilterTypes.WATCHLIST]: (films) => films.filter(({userDetails}) => userDetails.watchlist),
-  [FilterTypes.ALREADYWATCHED]: (films) => films.filter(({userDetails}) => userDetails.alreadyWatched),
-  [FilterTypes.FAVORITE]: (films) => films.filter(({userDetails}) => userDetails.favorite),
+  [FilterType.ALL]: (films) => films,
+  [FilterType.WATCHLIST]: (films) => films.filter(({userDetails}) => userDetails.watchlist),
+  [FilterType.ALREADYWATCHED]: (films) => films.filter(({userDetails}) => userDetails.alreadyWatched),
+  [FilterType.FAVORITE]: (films) => films.filter(({userDetails}) => userDetails.favorite),
 };
 
-export {filter, FilterTypes};
+export {filter, FilterType};

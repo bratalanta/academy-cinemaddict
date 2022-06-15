@@ -1,23 +1,24 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { FilterTypes } from '../utils/filter.js';
+import { FilterType } from '../utils/filter.js';
 
-const createFilterItemTemplate = (filter, isActive) => {
-  const {name, count} = filter;
+const createFilterItemTemplate = (filter, currentFilterType) => {
+  const {type, name, hrefName, count} = filter;
 
   return `<a
-    href="#${name.charAt(0).toLowerCase() + name.slice(1)}"
-    class="main-navigation__item ${isActive ? 'main-navigation__item--active' : ''}">
-     ${name === FilterTypes.ALL ?
+    href="#${hrefName}"
+    class="main-navigation__item ${type === currentFilterType ? 'main-navigation__item--active' : ''}"
+    data-value="${type}">
+     ${name === FilterType.ALL ?
     `${name} movies` :
     `${name}
-      <span class="main-navigation__item-count">
+      <span class="main-navigation__item-count" data-value="${type}">
         ${count}
       </span>`}
   </a>`;
 };
 
-const createFilterTemplate = (filterItems) => {
-  const filterItemsTemplate = filterItems.map((filter, index) => createFilterItemTemplate(filter, index === 0))
+const createFilterTemplate = (filterItems, currentFilterType) => {
+  const filterItemsTemplate = filterItems.map((filter) => createFilterItemTemplate(filter, currentFilterType))
     .join('');
 
   return `<nav class="main-navigation">
@@ -27,13 +28,30 @@ const createFilterTemplate = (filterItems) => {
 
 export default class FilterView extends AbstractView {
   #filters = null;
+  #currentFilterType = null;
 
-  constructor (filters) {
+  constructor (filters, currentFilterType) {
     super();
     this.#filters = filters;
+    this.#currentFilterType = currentFilterType;
   }
 
   get template() {
-    return createFilterTemplate(this.#filters);
+    return createFilterTemplate(this.#filters, this.#currentFilterType);
   }
+
+  setFilterTypeChangeHandler = (cb) => {
+    this._callback.filterTypeChange = cb;
+
+    this.element.addEventListener('click', this.#filterTypeChangeHandler);
+  };
+
+  #filterTypeChangeHandler = (evt) => {
+    const {target} = evt;
+
+    if (target.tagName === 'A' || target.tagName === 'SPAN') {
+      evt.preventDefault();
+      this._callback.filterTypeChange(target.dataset.value);
+    }
+  };
 }

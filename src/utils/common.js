@@ -1,7 +1,25 @@
 const FALSE_VALUE = 0;
 const TRUE_VALUE = 1;
+const UNIQUE_IDS = [];
+
+const IdsRange = {
+  MIN_ID: 0,
+  MAX_ID: 9
+};
 
 const getRandomInteger = (min, max) => min + Math.round(Math.random() * (max - min));
+
+const getRandomUniqueId = () => {
+  if (UNIQUE_IDS.includes(IdsRange.MIN_ID)) {
+    IdsRange.MIN_ID++;
+  }
+
+  if (!UNIQUE_IDS.includes(IdsRange.MIN_ID) && IdsRange.MIN_ID <= IdsRange.MAX_ID) {
+    UNIQUE_IDS.push(IdsRange.MIN_ID);
+
+    return IdsRange.MIN_ID;
+  }
+};
 
 const getRandomIntegerArray = (maxLength, maxNum) => {
   const resArray = [];
@@ -21,18 +39,4 @@ const getRandomBoolean = () => {
   return true;
 };
 
-const updateItem = (items, update) => {
-  const index = items.findIndex((item) => item.id === update.id);
-
-  if (index === -1) {
-    return items;
-  }
-
-  return [
-    ...items.slice(0, index),
-    update,
-    ...items.slice(index + 1)
-  ];
-};
-
-export {getRandomInteger, getRandomIntegerArray, updateItem, getRandomBoolean};
+export {getRandomInteger, getRandomIntegerArray, getRandomBoolean, getRandomUniqueId};
