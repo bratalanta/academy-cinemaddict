@@ -4,7 +4,7 @@ const sortByDate = ({filmInfo: filmInfoA}, {filmInfo: filmInfoB}) => {
   const {release: releaseA} = filmInfoA;
   const {release: releaseB} = filmInfoB;
 
-  return dayjs(releaseA.date).diff(dayjs(releaseB.date));
+  return dayjs(releaseB.date).diff(dayjs(releaseA.date));
 };
 
 const sortByRating = ({filmInfo: filmInfoA}, {filmInfo: filmInfoB}) => {

@@ -1,7 +1,5 @@
 import { humanizeFilmDate, normalizeFilmRuntime } from '../utils/film.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { getRandomInteger } from '../utils/common.js';
-import { MAX_DATE, MIN_DATE } from '../mock/comment.js';
 import he from 'he';
 import { nanoid } from 'nanoid';
 
@@ -62,7 +60,7 @@ const createEmojisTemplate = (selectedEmoji) => (
     )).join('\n')
 );
 
-const createFilmPopupTemplate = (film, popupComments, state) => {
+const createFilmPopupTemplate = (film, popupComments, state, isCommentsLoading = true) => {
   const {selectedEmoji, commentInput} = state;
   const {filmInfo, userDetails} = film;
   const {title, alternativeTitle, totalRating, release, runtime, genre, poster, description, ageRating, director, writers, actors} = filmInfo;
@@ -140,9 +138,10 @@ const createFilmPopupTemplate = (film, popupComments, state) => {
         <section class="film-details__comments-wrap">
           <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${popupComments.length}</span></h3>
 
-          <ul class="film-details__comments-list">
-          ${createPopupCommentsTemplate(popupComments)}
-          </ul>
+    ${isCommentsLoading ? '<h2>Loading comments...</h2>' :
+    `<ul class="film-details__comments-list">
+      ${createPopupCommentsTemplate(popupComments)}
+    </ul>`}
 
           <div class="film-details__new-comment">
             <div class="film-details__add-emoji-label">
@@ -150,7 +149,7 @@ const createFilmPopupTemplate = (film, popupComments, state) => {
             </div>
 
             <label class="film-details__comment-label">
-              <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${commentInput ? commentInput : ''}</textarea>
+              <textarea class="film-details__comment-input" ${isCommentsLoading ? 'disabled' : ''} placeholder="Select reaction below and write comment here" name="comment">${commentInput ? commentInput : ''}</textarea>
             </label>
 
             <div class="film-details__emoji-list">
@@ -167,17 +166,18 @@ export default class FilmPopupView extends AbstractStatefulView {
   #popupScrollPosition = null;
   #film = null;
   #comments = null;
+  #isCommentsLoading = true;
 
-  constructor(film, comments) {
+  constructor(film, comments, isCommentsLoading) {
     super();
-
+    this.#isCommentsLoading = isCommentsLoading;
     this.#film = film;
     this.#comments = comments;
     this.#setInnerHandlers();
   }
 
   get template() {
-    return createFilmPopupTemplate(this.#film, this.#comments, this._state);
+    return createFilmPopupTemplate(this.#film, this.#comments, this._state, this.#isCommentsLoading);
   }
 
   get scrollPosition() {
@@ -221,7 +221,9 @@ export default class FilmPopupView extends AbstractStatefulView {
     this._callback.deleteButtonClick = cb;
     const commentsList = this.element.querySelector('.film-details__comments-list');
 
-    commentsList.addEventListener('click', this.#deleteButtonClickHandler);
+    if (commentsList) {
+      commentsList.addEventListener('click', this.#deleteButtonClickHandler);
+    }
   };
 
   setCloseButtonClickHandler = (cb) => {
@@ -263,7 +265,7 @@ export default class FilmPopupView extends AbstractStatefulView {
         id: `${nanoid()}`,
         author: 'Matvei Denisov',
         comment: target.value,
-        date: `${getRandomInteger(MIN_DATE, MAX_DATE)}-05-11T16:12:32.554Z`,
+        date: '$2020-05-11T16:12:32.554Z',
         emotion: selectedEmoji
       };
 

@@ -15,8 +15,10 @@ const normalizeFilmRuntime = (runtime) => {
 
 const truncFilmDescription = (description) => {
   if (description.length > MAX_DESCRIPTION_LENGTH) {
-    return `${description.slice(0, MAX_DESCRIPTION_LENGTH - ELLIPSIS_SIGN.length)}${ELLIPSIS_SIGN}`;
+    description = `${description.slice(0, MAX_DESCRIPTION_LENGTH - ELLIPSIS_SIGN.length)}${ELLIPSIS_SIGN}`;
   }
+
+  return description;
 };
 
 export {humanizeFilmDate, normalizeFilmRuntime, truncFilmDescription};
