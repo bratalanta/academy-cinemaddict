@@ -6,12 +6,18 @@ import { remove, render, RenderPosition } from '../framework/render.js';
 import FilmsEmptyListView from '../view/films-empty-list-view.js';
 import FilmPresenter from './film-presenter.js';
 import SortView, { SortType } from '../view/sort-view.js';
-import { sortByDate, sortByRating } from '../utils/sort.js';
+import { sortFilmsByDate, sortFilmsByRating } from '../utils/sort.js';
 import {UserAction, UpdateType} from '../const.js';
 import { filter, FilterType } from '../utils/filter.js';
 import FilmsLoadingView from '../view/films-loading-view.js';
+import FooterView from '../view/footer-view.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
-const MAX_FILMS_AMOUNT_PER_STEP = 5;
+const FILMS_COUNT_PER_STEP = 5;
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000
+};
 
 export default class BoardPresenter {
   #boardComponent = new BoardView();
@@ -21,8 +27,10 @@ export default class BoardPresenter {
   #filmsEmptyListComponent = null;
   #sortComponent = null;
   #filmsLoadingComponent = new FilmsLoadingView();
+  #footerComponent = new FooterView();
+  #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
-  #renderedFilmsAmount = MAX_FILMS_AMOUNT_PER_STEP;
+  #renderedFilmsAmount = FILMS_COUNT_PER_STEP;
   #filmPresenter = new Map();
   #currentSortType = SortType.DEFAULT;
   #filterType = FilterType.ALL;
@@ -51,9 +59,9 @@ export default class BoardPresenter {
 
     switch (this.#currentSortType) {
       case SortType.DATE:
-        return filteredFilms.sort(sortByDate);
+        return filteredFilms.sort(sortFilmsByDate);
       case SortType.RATING:
-        return filteredFilms.sort(sortByRating);
+        return filteredFilms.sort(sortFilmsByRating);
     }
 
     return filteredFilms;
@@ -99,6 +107,8 @@ export default class BoardPresenter {
     if (filmsAmount > this.#renderedFilmsAmount) {
       this.#renderShowMoreButton();
     }
+
+    render(this.#footerComponent, this.#boardContainer, RenderPosition.AFTEREND);
   };
 
   #renderNoFilms = () => {
@@ -113,7 +123,7 @@ export default class BoardPresenter {
   };
 
   #renderFilm = (film) => {
-    const filmPresenter = new FilmPresenter(this.#filmsListContainerComponent.element, this.#onFilmCardViewAction, this.#onPopupViewAction,this.#onPopupModeChange, this.#commentsModel);
+    const filmPresenter = new FilmPresenter(this.#filmsListContainerComponent.element, this.#footerComponent.element, this.#onFilmCardViewAction, this.#onPopupViewAction,this.#onPopupModeChange, this.#commentsModel);
     filmPresenter.init(film);
 
     this.#filmPresenter.set(film.id, filmPresenter);
@@ -134,7 +144,7 @@ export default class BoardPresenter {
     remove(this.#showMoreButtonComponent);
 
     if (resetRenderedFilmsAmount) {
-      this.#renderedFilmsAmount = MAX_FILMS_AMOUNT_PER_STEP;
+      this.#renderedFilmsAmount = FILMS_COUNT_PER_STEP;
     } else {
       this.#renderedFilmsAmount = Math.min(filmsAmount, this.#renderedFilmsAmount);
     }
@@ -157,7 +167,7 @@ export default class BoardPresenter {
 
   #onShowMoreButtonClick = () => {
     const filmsAmount = this.films.length;
-    const newRenderedFilmsAmount = Math.min(filmsAmount, this.#renderedFilmsAmount + MAX_FILMS_AMOUNT_PER_STEP);
+    const newRenderedFilmsAmount = Math.min(filmsAmount, this.#renderedFilmsAmount + FILMS_COUNT_PER_STEP);
     const films = this.films.slice(this.#renderedFilmsAmount, newRenderedFilmsAmount);
 
     this.#renderFilms(films);
@@ -168,29 +178,62 @@ export default class BoardPresenter {
     }
   };
 
-  #onFilmCardViewAction = (actionType, updateType, update) => {
+  #onFilmCardViewAction = async (actionType, updateType, update) => {
+    const {id: filmId} = update;
+    this.#uiBlocker.block();
+
     switch (actionType) {
       case UserAction.UPDATE_FILM:
-        this.#filmsModel.updateFilm(updateType, update);
+        try {
+          await this.#filmsModel.updateFilm(updateType, update);
+        } catch(err) {
+          this.#filmPresenter.get(filmId).setAborting();
+        }
         break;
     }
+
+    this.#uiBlocker.unblock();
   };
 
-  #onPopupViewAction = (actionType, updateType, update) => {
+  #onPopupViewAction = async (actionType, updateType, update) => {
+    const {id: filmId, commentId} = update;
+    this.#uiBlocker.block();
+
     switch (actionType) {
       case UserAction.ADD_COMMENT:
-        this.#commentsModel.addComment(updateType, update);
-        this.#filmsModel.addComment(updateType, update);
+        this.#filmPresenter.get(filmId).setAdding();
+
+        try {
+          await this.#commentsModel.addComment(updateType, update);
+        } catch(err) {
+          this.#filmPresenter.get(filmId).setAborting();
+        }
+
         break;
       case UserAction.DELETE_COMMENT:
-        this.#commentsModel.deleteComment(updateType, update);
-        this.#filmsModel.deleteComment(updateType, update);
+        this.#filmPresenter.get(filmId).setDeleting(commentId);
+
+        try {
+          await this.#commentsModel.deleteComment(updateType, update);
+        } catch {
+          this.#filmPresenter.get(filmId).setAborting();
+        }
+
+        this.#filmsModel.deleteComment(update);
         break;
     }
+
+    this.#uiBlocker.unblock();
   };
 
   #onModelEvent = (updateType, data) => {
-    const {id: filmId, isPopupOpened = true, popupScrollPosition = 0, popupComments} = data;
+    const {id: filmId,
+      isPopupOpened = true,
+      popupScrollPosition = 0,
+      popupComments,
+      filmComments,
+      prevPopupState
+    } = data;
 
     switch (updateType) {
       case UpdateType.PATCH:
@@ -201,12 +244,16 @@ export default class BoardPresenter {
         break;
       case UpdateType.MINOR:
         this.#clearBoard();
+
+        if (filmComments) {
+          this.#filmsModel.addComment(filmComments, filmId);
+        }
+
         this.#renderBoard();
 
         if (this.#filmPresenter.get(filmId) && isPopupOpened) {
-          this.#filmPresenter.get(filmId).updatePopupDetails(isPopupOpened, popupScrollPosition, popupComments);
+          this.#filmPresenter.get(filmId).updatePopupDetails(isPopupOpened, popupScrollPosition, popupComments, prevPopupState);
         }
-
         break;
       case UpdateType.MAJOR:
         this.#clearBoard({resetRenderedFilmsAmount: true, resetSortType: true});

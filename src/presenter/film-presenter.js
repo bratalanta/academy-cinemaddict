@@ -1,7 +1,8 @@
-import FilmPopupView from '../view/film-popup-view.js';
+import PopupFormView from '../view/popup-form-view.js';
 import FilmCardView from '../view/film-card-view.js';
-import { remove, render, replace } from '../framework/render.js';
+import { remove, render, RenderPosition, replace } from '../framework/render.js';
 import { UpdateType, UserAction } from '../const.js';
+import PopupSectionView from '../view/popup-section-view.js';
 
 const appBodyElement = document.body;
 
@@ -15,18 +16,57 @@ export default class FilmPresenter {
   #isCommentsLoading = true;
 
   #filmsListContainer = null;
+  #popupContainer = null;
 
+  #popupSectionComponent = null;
   #filmCardComponent = null;
-  #popupComponent = null;
+  #popupFormComponent = null;
   #commentsModel = null;
 
-  constructor (filmsListContainer, changeFilmData, changeCommentData, changePopupMode, commentsModel) {
+  constructor (filmsListContainer, popupContainer, changeFilmData, changeCommentData, changePopupMode, commentsModel) {
     this.#filmsListContainer = filmsListContainer;
     this.#changeFilmData = changeFilmData;
     this.#changeCommentData = changeCommentData;
     this.#changePopupMode = changePopupMode;
     this.#commentsModel = commentsModel;
+    this.#popupContainer = popupContainer;
   }
+
+  setAdding = () => {
+    if (this.#isPopupOpened) {
+      this.#popupFormComponent.updateElement({
+        isCommentAdding: true,
+        isDetailsDisabled: true
+      });
+    }
+  };
+
+  setDeleting = (deletingCommentId) => {
+    if (this.#isPopupOpened) {
+      this.#popupFormComponent.updateElement({
+        isCommentDeleting: true,
+        isDetailsDisabled: true,
+        deletingCommentId
+      });
+    }
+  };
+
+  setAborting = () => {
+    if (!this.#isPopupOpened) {
+      this.#filmCardComponent.shake();
+      return;
+    }
+
+    const resetPopupState = () => {
+      this.#popupFormComponent.updateElement({
+        isCommentDeleting: false,
+        isDetailsDisabled: false,
+        isCommentAdding: false,
+      });
+    };
+
+    this.#popupFormComponent.shake(resetPopupState);
+  };
 
   init = (film) => {
     this.#film = film;
@@ -51,14 +91,16 @@ export default class FilmPresenter {
 
   destroy = () => {
     remove(this.#filmCardComponent);
-    remove(this.#popupComponent);
+    remove(this.#popupSectionComponent);
+    remove(this.#popupFormComponent);
   };
 
   #onEscKeyDown = (evt) => {
     if (evt.key === 'Escape') {
       document.removeEventListener('keydown', this.#onEscKeyDown);
       appBodyElement.classList.remove('hide-overflow');
-      remove(this.#popupComponent);
+      remove(this.#popupSectionComponent);
+      remove(this.#popupFormComponent);
       this.#isPopupOpened = false;
     }
   };
@@ -76,66 +118,75 @@ export default class FilmPresenter {
   };
 
   #renderPopup = () => {
-    this.#popupComponent = new FilmPopupView(this.#film, this.#popupComments, this.#isCommentsLoading);
+    this.#popupSectionComponent = new PopupSectionView();
+    render(this.#popupSectionComponent, this.#popupContainer, RenderPosition.AFTEREND);
 
-    this.#popupComponent.setCloseButtonClickHandler(() => this.#closePopup());
-    this.#popupComponent.setWatchlistClickHandler(this.#onWatchlistClick);
-    this.#popupComponent.setAlreadyWatchedClickHandler(this.#onAlreadyWatchedClick);
-    this.#popupComponent.setFavoriteClickHandler(this.#onFavoriteClick);
-    this.#popupComponent.setDeleteButtonClickHandler(this.#onDeleteButtonClick);
-    this.#popupComponent.setCommentAddHandler(this.#onCommentAdd);
+    this.#popupFormComponent = new PopupFormView(this.#film, this.#popupComments, this.#isCommentsLoading);
+    render(this.#popupFormComponent, this.#popupSectionComponent.element);
 
-    render(this.#popupComponent, appBodyElement);
+    this.#popupFormComponent.setCloseButtonClickHandler(() => this.#closePopup());
+    this.#popupFormComponent.setWatchlistClickHandler(this.#onWatchlistClick);
+    this.#popupFormComponent.setAlreadyWatchedClickHandler(this.#onAlreadyWatchedClick);
+    this.#popupFormComponent.setFavoriteClickHandler(this.#onFavoriteClick);
+    this.#popupFormComponent.setDeleteButtonClickHandler(this.#onDeleteButtonClick);
+    this.#popupFormComponent.setCommentAddHandler(this.#onCommentAdd);
   };
 
-  updatePopupComments = (isPopupOpened, popupScrollPosition, popupComments) => {
+  updatePopupComments = (isPopupOpened, popupScrollPosition, popupComments, prevPopupState) => {
     this.resetPopup();
     if (isPopupOpened) {
       this.#updatePopup(popupComments, popupScrollPosition);
+      this.#popupFormComponent.updateElement(prevPopupState);
     }
   };
 
-  updatePopupDetails = (isPopupOpened, popupScrollPosition, popupComments) => {
+  updatePopupDetails = (isPopupOpened, popupScrollPosition, popupComments, prevPopupState) => {
     this.#isCommentsLoading = false;
     if (isPopupOpened) {
       this.#updatePopup(popupComments, popupScrollPosition);
+      this.#popupFormComponent.updateElement(prevPopupState);
     }
   };
 
+  updateFilmCardComments = (updatedComments) => {
+    this.#film.comments = updatedComments;
+  };
+
   #updatePopup = (popupComments, popupScrollPosition) => {
-    this.#popupComments = popupComments;
+    this.#popupComments = this.#commentsModel.comments;
     this.#openPopup();
-    this.#popupComponent.element.scrollTop = popupScrollPosition;
+    this.#popupSectionComponent.element.scrollTop = popupScrollPosition;
     this.#isCommentsLoading = true;
   };
 
   resetPopup = () => {
     if (this.#isPopupOpened) {
-      this.#popupComponent.reset();
+      this.#popupFormComponent.reset();
       this.#closePopup();
     }
   };
 
   #closePopup = () => {
     appBodyElement.classList.remove('hide-overflow');
-    appBodyElement.removeChild(this.#popupComponent.element);
+    remove(this.#popupFormComponent);
+    remove(this.#popupSectionComponent);
     this.#isPopupOpened = false;
   };
 
-  #onCommentAdd = (newComment) => {
+  #onCommentAdd = (comment) => {
     this.#changeCommentData(
       UserAction.ADD_COMMENT,
       UpdateType.MINOR,
       {
-        newComment,
+        comment,
         id: this.#film.id,
         isPopupOpened: this.#isPopupOpened,
-        popupScrollPosition: this.#popupComponent.element.scrollTop
+        popupScrollPosition: this.#popupSectionComponent.element.scrollTop
       }
     );
   };
 
-  #onDeleteButtonClick = (commentId) => {
+  #onDeleteButtonClick = (commentId, prevPopupState) => {
     this.#changeCommentData(
       UserAction.DELETE_COMMENT,
       UpdateType.MINOR,
@@ -143,7 +194,8 @@ export default class FilmPresenter {
         commentId,
         id: this.#film.id,
         isPopupOpened: this.#isPopupOpened,
-        popupScrollPosition: this.#popupComponent.element.scrollTop
+        popupScrollPosition: this.#popupSectionComponent.element.scrollTop,
+        prevPopupState
       }
     );
   };
@@ -155,7 +207,7 @@ export default class FilmPresenter {
     }
   };
 
-  #onWatchlistClick = () => {
+  #onWatchlistClick = (prevPopupState) => {
     this.#changeFilmData(
       UserAction.UPDATE_FILM,
       UpdateType.MINOR,
@@ -167,13 +219,14 @@ export default class FilmPresenter {
           watchlist: !this.#film.userDetails.watchlist
         },
         isPopupOpened: this.#isPopupOpened,
-        popupScrollPosition: this.#isPopupOpened ? this.#popupComponent.element.scrollTop : '',
-        popupComments: this.#popupComments
+        popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
+        popupComments: this.#popupComments,
+        prevPopupState: prevPopupState ? prevPopupState : ''
       }
     );
   };
 
-  #onAlreadyWatchedClick = () => {
+  #onAlreadyWatchedClick = (prevPopupState) => {
     this.#changeFilmData(
       UserAction.UPDATE_FILM,
       UpdateType.MINOR,
@@ -184,13 +237,14 @@ export default class FilmPresenter {
           alreadyWatched: !this.#film.userDetails.alreadyWatched
         },
         isPopupOpened: this.#isPopupOpened,
-        popupScrollPosition: this.#isPopupOpened ? this.#popupComponent.element.scrollTop : '',
-        popupComments: this.#popupComments
+        popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
+        popupComments: this.#popupComments,
+        prevPopupState: prevPopupState ? prevPopupState : ''
       }
     );
   };
 
-  #onFavoriteClick = () => {
+  #onFavoriteClick = (prevPopupState) => {
     this.#changeFilmData(
       UserAction.UPDATE_FILM,
       UpdateType.MINOR,
@@ -202,8 +256,9 @@ export default class FilmPresenter {
           favorite: !this.#film.userDetails.favorite
         },
         isPopupOpened: this.#isPopupOpened,
-        popupScrollPosition: this.#isPopupOpened ? this.#popupComponent.element.scrollTop : '',
-        popupComments: this.#popupComments
+        popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
+        popupComments: this.#popupComments,
+        prevPopupState: prevPopupState ? prevPopupState : ''
       }
     );
   };

@@ -86,21 +86,16 @@ export default class FilmsModel extends Observable {
     }
   };
 
-  addComment = (updateType, update) => {
-    const {id: filmUpdateId, newComment} = update;
-
+  addComment = (comments, filmId) => {
     this.#films.map((film) => {
-      if (film.id === filmUpdateId) {
-        film.comments.push(newComment.id);
+      if (film.id === filmId) {
+        film.comments = comments;
       }
-
       return film;
     });
-
-    this._notify(updateType, update);
   };
 
-  deleteComment = (updateType, update) => {
+  deleteComment = (update) => {
     const {commentId: commentUpdateId, id: filmUpdateId} = update;
 
     this.#films.map((film) => {
@@ -110,7 +105,5 @@ export default class FilmsModel extends Observable {
 
       return film;
     });
-
-    this._notify(updateType, update);
   };
 }
