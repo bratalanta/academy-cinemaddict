@@ -60,7 +60,7 @@ const createEmojisTemplate = (selectedEmoji, isCommentAdding) => (
     )).join('\n')
 );
 
-const createPopupFormTemplate = (film, popupComments, state, isCommentsLoading = true) => {
+const createPopupFormTemplate = (film, popupComments, state, isCommentsLoading, isCommentsLoadFailed) => {
   const {selectedEmoji,
     commentInput,
     isCommentDeleting,
@@ -158,14 +158,14 @@ const createPopupFormTemplate = (film, popupComments, state, isCommentsLoading =
     `<ul class="film-details__comments-list">
       ${createPopupCommentsTemplate(popupComments, isCommentDeleting, deletingCommentId)}
     </ul>`}
-
+    ${isCommentsLoadFailed ? '<h2 style="text-decoration: underline">Failed to load comments</h2>' : ''}
           <div class="film-details__new-comment">
             <div class="film-details__add-emoji-label">
             ${addEmojiLabelImage(selectedEmoji)}
             </div>
 
             <label class="film-details__comment-label">
-              <textarea class="film-details__comment-input" ${isCommentsLoading || isCommentAdding ? 'disabled' : ''} placeholder="Select reaction below and write comment here" name="comment">${commentInput ? commentInput : ''}</textarea>
+              <textarea class="film-details__comment-input" ${isCommentsLoading || isCommentAdding || isCommentsLoadFailed ? 'disabled' : ''} placeholder="Select reaction below and write comment here" name="comment">${commentInput ? commentInput : ''}</textarea>
             </label>
 
             <div class="film-details__emoji-list">
@@ -182,17 +182,19 @@ export default class PopupFormView extends AbstractStatefulView {
   #film = null;
   #comments = null;
   #isCommentsLoading = true;
+  #isCommentsLoadFailed = false;
 
-  constructor(film, comments, isCommentsLoading) {
+  constructor(film, comments, isCommentsLoading, isCommentsLoadFailed) {
     super();
     this.#isCommentsLoading = isCommentsLoading;
+    this.#isCommentsLoadFailed = isCommentsLoadFailed;
     this.#film = film;
     this.#comments = comments;
     this.#setInnerHandlers();
   }
 
   get template() {
-    return createPopupFormTemplate(this.#film, this.#comments, this._state, this.#isCommentsLoading);
+    return createPopupFormTemplate(this.#film, this.#comments, this._state, this.#isCommentsLoading, this.#isCommentsLoadFailed);
   }
 
   get scrollPosition() {

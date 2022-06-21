@@ -63,8 +63,8 @@ export default class FilmsModel extends Observable {
   };
 
   updateFilm = async (updateType, update) => {
-    const {id, filmInfo, comments, userDetails} = update;
-    const index = this.#films.findIndex((film) => film.id === update.id);
+    const {filmId: id, filmInfo, comments, userDetails} = update;
+    const index = this.#films.findIndex((film) => film.id === id);
 
     if (index === -1) {
       throw new Error('Can\'t update unexisting film');
@@ -95,7 +95,7 @@ export default class FilmsModel extends Observable {
   };
 
   deleteComment = (update) => {
-    const {commentId: commentUpdateId, id: filmUpdateId} = update;
+    const {commentId: commentUpdateId, filmId: filmUpdateId} = update;
 
     this.#films.map((film) => {
       if (filmUpdateId === film.id) {

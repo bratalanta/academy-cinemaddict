@@ -16,27 +16,26 @@ export default class CommentsModel extends Observable {
   }
 
   init = async (film) => {
+    const update = {};
+
     try {
       const comments = await this.#commentsApiService.getComments(film.id);
       this.#comments = comments.sort(sortCommentsByDate);
 
     } catch(err) {
       this.#comments = [];
+      update.isCommentsLoadFailed = true;
     }
-
-    const update = {
-      id: film.id,
-      popupComments: this.#comments,
-      film
-    };
+    update.filmId = film.id;
+    update.film = film;
 
     this._notify(UpdateType.PATCH, update);
   };
 
   addComment = async (updateType, update) => {
-    const {comment, id} = update;
+    const {comment, filmId} = update;
     try {
-      const response = await this.#commentsApiService.addComment(comment, id);
+      const response = await this.#commentsApiService.addComment(comment, filmId);
       this.#comments = response.comments.sort(sortCommentsByDate);
       update.filmComments = response.movie.comments;
 

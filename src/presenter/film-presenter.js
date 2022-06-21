@@ -4,16 +4,14 @@ import { remove, render, RenderPosition, replace } from '../framework/render.js'
 import { UpdateType, UserAction } from '../const.js';
 import PopupSectionView from '../view/popup-section-view.js';
 
-const appBodyElement = document.body;
-
 export default class FilmPresenter {
   #film = null;
   #popupComments = [];
-  #changeFilmData = null;
-  #changeCommentData = null;
+  #changeData = null;
   #changePopupMode = null;
   #isPopupOpened = false;
   #isCommentsLoading = true;
+  #isCommentsLoadFailed = false;
 
   #filmsListContainer = null;
   #popupContainer = null;
@@ -23,10 +21,9 @@ export default class FilmPresenter {
   #popupFormComponent = null;
   #commentsModel = null;
 
-  constructor (filmsListContainer, popupContainer, changeFilmData, changeCommentData, changePopupMode, commentsModel) {
+  constructor (filmsListContainer, popupContainer, changeData, changePopupMode, commentsModel) {
     this.#filmsListContainer = filmsListContainer;
-    this.#changeFilmData = changeFilmData;
-    this.#changeCommentData = changeCommentData;
+    this.#changeData = changeData;
     this.#changePopupMode = changePopupMode;
     this.#commentsModel = commentsModel;
     this.#popupContainer = popupContainer;
@@ -98,7 +95,7 @@ export default class FilmPresenter {
   #onEscKeyDown = (evt) => {
     if (evt.key === 'Escape') {
       document.removeEventListener('keydown', this.#onEscKeyDown);
-      appBodyElement.classList.remove('hide-overflow');
+      document.body.classList.remove('hide-overflow');
       remove(this.#popupSectionComponent);
       remove(this.#popupFormComponent);
       this.#isPopupOpened = false;
@@ -106,7 +103,7 @@ export default class FilmPresenter {
   };
 
   #openPopup = async () => {
-    appBodyElement.classList.add('hide-overflow');
+    document.body.classList.add('hide-overflow');
     document.addEventListener('keydown', this.#onEscKeyDown);
     this.#renderPopup();
     this.#isPopupOpened = true;
@@ -121,7 +118,7 @@ export default class FilmPresenter {
     this.#popupSectionComponent = new PopupSectionView();
     render(this.#popupSectionComponent, this.#popupContainer, RenderPosition.AFTEREND);
 
-    this.#popupFormComponent = new PopupFormView(this.#film, this.#popupComments, this.#isCommentsLoading);
+    this.#popupFormComponent = new PopupFormView(this.#film, this.#popupComments, this.#isCommentsLoading, this.#isCommentsLoadFailed);
     render(this.#popupFormComponent, this.#popupSectionComponent.element);
 
     this.#popupFormComponent.setCloseButtonClickHandler(() => this.#closePopup());
@@ -132,19 +129,22 @@ export default class FilmPresenter {
     this.#popupFormComponent.setCommentAddHandler(this.#onCommentAdd);
   };
 
-  updatePopupComments = (isPopupOpened, popupScrollPosition, popupComments, prevPopupState) => {
+  updatePopupComments = (isPopupOpened, popupScrollPosition, isCommentsLoadFailed) => {
+    this.#isCommentsLoadFailed = isCommentsLoadFailed;
     this.resetPopup();
     if (isPopupOpened) {
-      this.#updatePopup(popupComments, popupScrollPosition);
-      this.#popupFormComponent.updateElement(prevPopupState);
+      this.#updatePopup(popupScrollPosition);
     }
   };
 
-  updatePopupDetails = (isPopupOpened, popupScrollPosition, popupComments, prevPopupState) => {
+  updatePopupDetails = (isPopupOpened, popupScrollPosition, prevPopupState) => {
     this.#isCommentsLoading = false;
     if (isPopupOpened) {
-      this.#updatePopup(popupComments, popupScrollPosition);
-      this.#popupFormComponent.updateElement(prevPopupState);
+      this.#updatePopup(popupScrollPosition);
+
+      if (prevPopupState) {
+        this.#popupFormComponent.updateElement(prevPopupState);
+      }
     }
   };
 
@@ -152,7 +152,7 @@ export default class FilmPresenter {
     this.#film.comments = updatedComments;
   };
 
-  #updatePopup = (popupComments, popupScrollPosition) => {
+  #updatePopup = (popupScrollPosition) => {
     this.#popupComments = this.#commentsModel.comments;
     this.#openPopup();
     this.#popupSectionComponent.element.scrollTop = popupScrollPosition;
@@ -167,19 +167,19 @@ export default class FilmPresenter {
   };
 
   #closePopup = () => {
-    appBodyElement.classList.remove('hide-overflow');
+    document.body.classList.remove('hide-overflow');
     remove(this.#popupFormComponent);
     remove(this.#popupSectionComponent);
     this.#isPopupOpened = false;
   };
 
   #onCommentAdd = (comment) => {
-    this.#changeCommentData(
+    this.#changeData(
       UserAction.ADD_COMMENT,
       UpdateType.MINOR,
       {
         comment,
-        id: this.#film.id,
+        filmId: this.#film.id,
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#popupSectionComponent.element.scrollTop
       }
@@ -187,12 +187,12 @@ export default class FilmPresenter {
   };
 
   #onDeleteButtonClick = (commentId, prevPopupState) => {
-    this.#changeCommentData(
+    this.#changeData(
       UserAction.DELETE_COMMENT,
       UpdateType.MINOR,
       {
         commentId,
-        id: this.#film.id,
+        filmId: this.#film.id,
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#popupSectionComponent.element.scrollTop,
         prevPopupState
@@ -208,7 +208,7 @@ export default class FilmPresenter {
   };
 
   #onWatchlistClick = (prevPopupState) => {
-    this.#changeFilmData(
+    this.#changeData(
       UserAction.UPDATE_FILM,
       UpdateType.MINOR,
       {
@@ -220,14 +220,14 @@ export default class FilmPresenter {
         },
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
-        popupComments: this.#popupComments,
-        prevPopupState: prevPopupState ? prevPopupState : ''
+        prevPopupState: prevPopupState ? prevPopupState : '',
+        filmId: this.#film.id
       }
     );
   };
 
   #onAlreadyWatchedClick = (prevPopupState) => {
-    this.#changeFilmData(
+    this.#changeData(
       UserAction.UPDATE_FILM,
       UpdateType.MINOR,
       {
@@ -238,14 +238,14 @@ export default class FilmPresenter {
         },
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
-        popupComments: this.#popupComments,
-        prevPopupState: prevPopupState ? prevPopupState : ''
+        prevPopupState: prevPopupState ? prevPopupState : '',
+        filmId: this.#film.id
       }
     );
   };
 
   #onFavoriteClick = (prevPopupState) => {
-    this.#changeFilmData(
+    this.#changeData(
       UserAction.UPDATE_FILM,
       UpdateType.MINOR,
       {
@@ -257,8 +257,8 @@ export default class FilmPresenter {
         },
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
-        popupComments: this.#popupComments,
-        prevPopupState: prevPopupState ? prevPopupState : ''
+        prevPopupState: prevPopupState ? prevPopupState : '',
+        filmId: this.#film.id
       }
     );
   };

@@ -4,7 +4,7 @@ const createFooterTemplate = (filmsCount) => (
   `<footer class="footer">
     <section class="footer__logo logo logo--smaller">Cinemaddict</section>
     <section class="footer__statistics">
-      ${filmsCount} movies inside
+      <p>${filmsCount} movies inside</p>
     </section>
   </footer>`
 );

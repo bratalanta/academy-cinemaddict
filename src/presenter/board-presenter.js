@@ -144,7 +144,7 @@ export default class BoardPresenter {
   };
 
   #renderFilm = (film) => {
-    const filmPresenter = new FilmPresenter(this.#filmsListContainerComponent.element, this.#footerComponent.element, this.#onFilmCardViewAction, this.#onPopupViewAction,this.#onPopupModeChange, this.#commentsModel);
+    const filmPresenter = new FilmPresenter(this.#filmsListContainerComponent.element, this.#footerComponent.element, this.#onViewAction,this.#onPopupModeChange, this.#commentsModel);
     filmPresenter.init(film);
 
     this.#filmPresenter.set(film.id, filmPresenter);
@@ -200,8 +200,8 @@ export default class BoardPresenter {
     }
   };
 
-  #onFilmCardViewAction = async (actionType, updateType, update) => {
-    const {id: filmId} = update;
+  #onViewAction = async (actionType, updateType, update) => {
+    const {filmId, commentId} = update;
     this.#uiBlocker.block();
 
     switch (actionType) {
@@ -211,17 +211,8 @@ export default class BoardPresenter {
         } catch(err) {
           this.#filmPresenter.get(filmId).setAborting();
         }
+
         break;
-    }
-
-    this.#uiBlocker.unblock();
-  };
-
-  #onPopupViewAction = async (actionType, updateType, update) => {
-    const {id: filmId, commentId} = update;
-    this.#uiBlocker.block();
-
-    switch (actionType) {
       case UserAction.ADD_COMMENT:
         this.#filmPresenter.get(filmId).setAdding();
 
@@ -241,7 +232,6 @@ export default class BoardPresenter {
           this.#filmPresenter.get(filmId).setAborting();
         }
 
-        this.#filmsModel.deleteComment(update);
         break;
     }
 
@@ -249,18 +239,19 @@ export default class BoardPresenter {
   };
 
   #onModelEvent = (updateType, data) => {
-    const {id: filmId,
+    const {filmId,
       isPopupOpened = true,
       popupScrollPosition = 0,
-      popupComments,
       filmComments,
-      prevPopupState
+      prevPopupState,
+      commentId,
+      isCommentsLoadFailed
     } = data;
 
     switch (updateType) {
       case UpdateType.PATCH:
         if (this.#filmPresenter.get(filmId)) {
-          this.#filmPresenter.get(filmId).updatePopupComments(isPopupOpened, popupScrollPosition, popupComments);
+          this.#filmPresenter.get(filmId).updatePopupComments(isPopupOpened, popupScrollPosition, isCommentsLoadFailed);
         }
 
         break;
@@ -271,10 +262,14 @@ export default class BoardPresenter {
           this.#filmsModel.addComment(filmComments, filmId);
         }
 
+        if (commentId) {
+          this.#filmsModel.deleteComment(data);
+        }
+
         this.#renderBoard();
 
         if (this.#filmPresenter.get(filmId) && isPopupOpened) {
-          this.#filmPresenter.get(filmId).updatePopupDetails(isPopupOpened, popupScrollPosition, popupComments, prevPopupState);
+          this.#filmPresenter.get(filmId).updatePopupDetails(isPopupOpened, popupScrollPosition, prevPopupState);
         }
         break;
       case UpdateType.MAJOR:
