@@ -63,13 +63,12 @@ export default class FilmsModel extends Observable {
   };
 
   updateFilm = async (updateType, update) => {
+    const {id, filmInfo, comments, userDetails} = update;
     const index = this.#films.findIndex((film) => film.id === update.id);
 
     if (index === -1) {
       throw new Error('Can\'t update unexisting film');
     }
-
-    const {id, filmInfo, comments, userDetails} = update;
 
     try {
       const response = await this.#filmsApiService.updateFilm({id, filmInfo, comments, userDetails});

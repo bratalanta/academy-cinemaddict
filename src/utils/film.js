@@ -4,7 +4,7 @@ const HOUR_IN_MIN = 60;
 const MAX_DESCRIPTION_LENGTH = 140;
 const ELLIPSIS_SIGN = '…';
 
-const humanizeFilmDate = (date, format) => dayjs(date).format(format);
+const humanizeDate = (date, format) => dayjs(date).format(format);
 
 const normalizeFilmRuntime = (runtime) => {
   const hours = Math.floor(runtime / HOUR_IN_MIN);
@@ -21,4 +21,4 @@ const truncFilmDescription = (description) => {
   return description;
 };
 
-export {humanizeFilmDate, normalizeFilmRuntime, truncFilmDescription};
+export {humanizeDate, normalizeFilmRuntime, truncFilmDescription};

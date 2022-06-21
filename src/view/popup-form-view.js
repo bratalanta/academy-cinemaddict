@@ -1,4 +1,4 @@
-import { humanizeFilmDate, normalizeFilmRuntime } from '../utils/film.js';
+import { humanizeDate, normalizeFilmRuntime } from '../utils/film.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import he from 'he';
 
@@ -9,15 +9,10 @@ const EMOJIS = [
   'puke'
 ];
 
-const createFilmGenresTemplate = (genres) => {
-  let template = '';
-
-  for (const elem of genres) {
-    template += `<span class="film-details__genre">${elem}</span>`;
-  }
-
-  return template;
-};
+const createFilmGenresTemplate = (genres) => (
+  genres.map((item) => `<span class="film-details__genre">${item}</span>`)
+    .join('')
+);
 
 const getActiveControlButtonClassName = (userDetail) => userDetail ? 'film-details__control-button--active' : '';
 
@@ -35,7 +30,7 @@ const createPopupCommentsTemplate = (comments, isCommentDeleting, deletingCommen
                 <p class="film-details__comment-text">${he.encode(comment)}</p>
                 <p class="film-details__comment-info">
                   <span class="film-details__comment-author">${author}</span>
-                  <span class="film-details__comment-day">${humanizeFilmDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
+                  <span class="film-details__comment-day">${humanizeDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
                   <button
                   class="film-details__comment-delete"
                   data-id="${id}"
@@ -66,9 +61,25 @@ const createEmojisTemplate = (selectedEmoji, isCommentAdding) => (
 );
 
 const createPopupFormTemplate = (film, popupComments, state, isCommentsLoading = true) => {
-  const {selectedEmoji, commentInput, isCommentDeleting, isCommentAdding, isDetailsDisabled, deletingCommentId} = state;
+  const {selectedEmoji,
+    commentInput,
+    isCommentDeleting,
+    isCommentAdding,
+    isDetailsDisabled,
+    deletingCommentId} = state;
   const {filmInfo, userDetails} = film;
-  const {title, alternativeTitle, totalRating, release, runtime, genre, poster, description, ageRating, director, writers, actors} = filmInfo;
+  const {title,
+    alternativeTitle,
+    totalRating,
+    release,
+    runtime,
+    genre,
+    poster,
+    description,
+    ageRating,
+    director,
+    writers,
+    actors} = filmInfo;
   const {watchlist, alreadyWatched, favorite} = userDetails;
   const {date: releaseDate, releaseCountry} = release;
 
@@ -112,7 +123,7 @@ const createPopupFormTemplate = (film, popupComments, state, isCommentsLoading =
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Release Date</td>
-                <td class="film-details__cell">${humanizeFilmDate(releaseDate, 'DD MMMM YYYY')}</td>
+                <td class="film-details__cell">${humanizeDate(releaseDate, 'DD MMMM YYYY')}</td>
               </tr>
               <tr class="film-details__row">
                 <td class="film-details__term">Runtime</td>
@@ -123,7 +134,7 @@ const createPopupFormTemplate = (film, popupComments, state, isCommentsLoading =
                 <td class="film-details__cell">${releaseCountry}</td>
               </tr>
               <tr class="film-details__row">
-                <td class="film-details__term">Genres</td>
+                <td class="film-details__term">${genre.length > 1 ? 'Genres' : 'Genre'}</td>
                 <td class="film-details__cell">${createFilmGenresTemplate(genre)}</td>
               </tr>
             </table>
