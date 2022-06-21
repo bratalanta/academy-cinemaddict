@@ -9,7 +9,9 @@ const NoFilmsTextType = {
 };
 
 const createFilmsEmptyListTemplate = (currentFilterType) => (
-  `<h2 class="films-list__title">${NoFilmsTextType[currentFilterType]}</h2>`
+  `<h2 class="films-list__title">
+    ${NoFilmsTextType[currentFilterType]}
+  </h2>`
 );
 
 export default class FilmsEmptyListView extends AbstractView {

@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import {humanizeFilmDate, normalizeFilmRuntime, truncFilmDescription, } from '../utils/film.js';
+import {humanizeDate, normalizeFilmRuntime, truncFilmDescription, } from '../utils/film.js';
 
 const createFilmCardTemplate = (film) => {
   const {filmInfo, comments, userDetails} = film;
@@ -13,7 +13,7 @@ const createFilmCardTemplate = (film) => {
       <h3 class="film-card__title">${title}</h3>
       <p class="film-card__rating">${totalRating}</p>
       <p class="film-card__info">
-        <span class="film-card__year">${humanizeFilmDate(release.date, 'YYYY')}</span>
+        <span class="film-card__year">${humanizeDate(release.date, 'YYYY')}</span>
         <span class="film-card__duration">${normalizeFilmRuntime(runtime)}</span>
         <span class="film-card__genre">${genre[0]}</span>
       </p>
@@ -31,8 +31,6 @@ const createFilmCardTemplate = (film) => {
 };
 
 export default class FilmCardView extends AbstractView {
-  #popupScrollPosition = null;
-
   constructor(film) {
     super();
     this.film = film;
@@ -44,57 +42,50 @@ export default class FilmCardView extends AbstractView {
 
   setClickHandler = (cb) => {
     this._callback.click = cb;
-
     this.element.addEventListener('click', this.#clickHandler);
   };
 
   setWatchlistClickHandler = (cb) => {
     this._callback.watchlistClick = cb;
-
     this.element.querySelector('.film-card__controls-item--add-to-watchlist')
       .addEventListener('click', this.#watchlistClickHandler);
   };
 
   setAlreadyWatchedClickHandler = (cb) => {
     this._callback.alreadyWatchedClick = cb;
-
     this.element.querySelector('.film-card__controls-item--mark-as-watched')
       .addEventListener('click', this.#alreadyWatchedClickHandler);
   };
 
   setFavoriteClickHandler = (cb) => {
     this._callback.favoriteClick = cb;
-
     this.element.querySelector('.film-card__controls-item--favorite')
       .addEventListener('click', this.#favoriteClickHandler);
   };
 
   #clickHandler = (evt) => {
-    evt.preventDefault();
     const {target} = evt;
 
     if (target.matches('button')) {
       return;
     }
 
+    evt.preventDefault();
     this._callback.click(evt);
   };
 
   #watchlistClickHandler = (evt) => {
     evt.preventDefault();
-
     this._callback.watchlistClick();
   };
 
   #alreadyWatchedClickHandler = (evt) => {
     evt.preventDefault();
-
     this._callback.alreadyWatchedClick();
   };
 
   #favoriteClickHandler = (evt) => {
     evt.preventDefault();
-
     this._callback.favoriteClick();
   };
 }

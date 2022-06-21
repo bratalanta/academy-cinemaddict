@@ -8,13 +8,13 @@ const createFilterItemTemplate = (filter, currentFilterType) => {
     href="#${hrefName}"
     class="main-navigation__item ${type === currentFilterType ? 'main-navigation__item--active' : ''}"
     data-value="${type}">
-     ${name === FilterType.ALL ?
+    ${name === FilterType.ALL ?
     `${name} movies` :
     `${name}
       <span class="main-navigation__item-count" data-value="${type}">
         ${count}
       </span>`}
-  </a>`;
+    </a>`;
 };
 
 const createFilterTemplate = (filterItems, currentFilterType) => {
@@ -23,7 +23,7 @@ const createFilterTemplate = (filterItems, currentFilterType) => {
 
   return `<nav class="main-navigation">
             ${filterItemsTemplate}
-          </nav>`;
+         </nav>`;
 };
 
 export default class FilterView extends AbstractView {
@@ -42,7 +42,6 @@ export default class FilterView extends AbstractView {
 
   setFilterTypeChangeHandler = (cb) => {
     this._callback.filterTypeChange = cb;
-
     this.element.addEventListener('click', this.#filterTypeChangeHandler);
   };
 

@@ -1,5 +1,6 @@
 import { UpdateType } from '../const.js';
 import Observable from '../framework/observable.js';
+import { sortCommentsByDate } from '../utils/sort.js';
 
 export default class CommentsModel extends Observable {
   #comments = [];
@@ -15,37 +16,47 @@ export default class CommentsModel extends Observable {
   }
 
   init = async (film) => {
+    const update = {};
+
     try {
-      this.#commentsApiService.setCommentsEndPoint(film.id);
-      const comments = await this.#commentsApiService.comments;
-      this.#comments = comments;
+      const comments = await this.#commentsApiService.getComments(film.id);
+      this.#comments = comments.sort(sortCommentsByDate);
 
     } catch(err) {
       this.#comments = [];
+      update.isCommentsLoadFailed = true;
     }
-
-    const update = {
-      id: film.id,
-      popupComments: this.#comments,
-      film
-    };
+    update.filmId = film.id;
+    update.film = film;
 
     this._notify(UpdateType.PATCH, update);
   };
 
-  addComment = (updateType, update) => {
-    const {newComment} = update;
+  addComment = async (updateType, update) => {
+    const {comment, filmId} = update;
+    try {
+      const response = await this.#commentsApiService.addComment(comment, filmId);
+      this.#comments = response.comments.sort(sortCommentsByDate);
+      update.filmComments = response.movie.comments;
 
-    this.#comments.unshift(newComment);
+      this._notify(updateType, update);
+    } catch {
+      throw new Error('Can\'t add comment');
+    }
 
-    this._notify(updateType, update);
   };
 
-  deleteComment = (updateType, update) => {
-    const {commentId: updateId} = update;
+  deleteComment = async (updateType, update) => {
+    const {commentId} = update;
 
-    this.#comments = this.#comments.filter((comment) => comment.id !== updateId);
+    try {
+      await this.#commentsApiService.deleteComment(commentId);
+      this.#comments = this.#comments.filter((comment) => comment.id !== commentId);
 
-    this._notify(updateType, update);
+      this._notify(updateType, update);
+    } catch {
+      throw new Error('Can\'t delete comment');
+    }
+
   };
 }
