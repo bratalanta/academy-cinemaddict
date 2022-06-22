@@ -12,6 +12,7 @@ export default class FilmPresenter {
   #isPopupOpened = false;
   #isCommentsLoading = true;
   #isCommentsLoadFailed = false;
+  #presenter = null;
 
   #filmsListContainer = null;
   #popupContainer = null;
@@ -21,12 +22,13 @@ export default class FilmPresenter {
   #popupFormComponent = null;
   #commentsModel = null;
 
-  constructor (filmsListContainer, popupContainer, changeData, changePopupMode, commentsModel) {
+  constructor (filmsListContainer, popupContainer, changeData, changePopupMode, commentsModel, presenter) {
     this.#filmsListContainer = filmsListContainer;
     this.#changeData = changeData;
     this.#changePopupMode = changePopupMode;
     this.#commentsModel = commentsModel;
     this.#popupContainer = popupContainer;
+    this.#presenter = presenter;
   }
 
   setAdding = () => {
@@ -110,7 +112,7 @@ export default class FilmPresenter {
 
     if (this.#isCommentsLoading) {
       this.#isCommentsLoading = false;
-      await this.#commentsModel.init(this.#film);
+      await this.#commentsModel.init(this.#film, this.#presenter);
     }
   };
 
@@ -181,7 +183,8 @@ export default class FilmPresenter {
         comment,
         filmId: this.#film.id,
         isPopupOpened: this.#isPopupOpened,
-        popupScrollPosition: this.#popupSectionComponent.element.scrollTop
+        popupScrollPosition: this.#popupSectionComponent.element.scrollTop,
+        presenter: this.#presenter
       }
     );
   };
@@ -195,7 +198,8 @@ export default class FilmPresenter {
         filmId: this.#film.id,
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#popupSectionComponent.element.scrollTop,
-        prevPopupState
+        prevPopupState,
+        presenter: this.#presenter
       }
     );
   };
@@ -221,7 +225,8 @@ export default class FilmPresenter {
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
         prevPopupState: prevPopupState ? prevPopupState : '',
-        filmId: this.#film.id
+        filmId: this.#film.id,
+        presenter: this.#presenter
       }
     );
   };
@@ -239,7 +244,8 @@ export default class FilmPresenter {
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
         prevPopupState: prevPopupState ? prevPopupState : '',
-        filmId: this.#film.id
+        filmId: this.#film.id,
+        presenter: this.#presenter
       }
     );
   };
@@ -258,7 +264,8 @@ export default class FilmPresenter {
         isPopupOpened: this.#isPopupOpened,
         popupScrollPosition: this.#isPopupOpened ? this.#popupSectionComponent.element.scrollTop : '',
         prevPopupState: prevPopupState ? prevPopupState : '',
-        filmId: this.#film.id
+        filmId: this.#film.id,
+        presenter: this.#presenter
       }
     );
   };

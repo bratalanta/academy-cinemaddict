@@ -16,4 +16,6 @@ const sortFilmsByRating = ({filmInfo: filmInfoA}, {filmInfo: filmInfoB}) => {
 
 const sortCommentsByDate = (commentA, commentB) => dayjs(commentA.date).diff(dayjs(commentB.date));
 
-export {sortFilmsByDate, sortFilmsByRating, sortCommentsByDate};
+const sortFilmsByMostComments = ({comments: commentsA}, {comments: commentsB}) => commentsB.length - commentsA.length;
+
+export {sortFilmsByDate, sortFilmsByRating, sortCommentsByDate, sortFilmsByMostComments};

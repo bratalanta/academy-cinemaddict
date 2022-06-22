@@ -15,7 +15,7 @@ export default class CommentsModel extends Observable {
     return this.#comments;
   }
 
-  init = async (film) => {
+  init = async (film, presenter) => {
     const update = {};
 
     try {
@@ -28,7 +28,7 @@ export default class CommentsModel extends Observable {
     }
     update.filmId = film.id;
     update.film = film;
-
+    update.presenter = presenter;
     this._notify(UpdateType.PATCH, update);
   };
 
