@@ -14,6 +14,8 @@ import FooterView from '../view/footer-view.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import UserRankView from '../view/user-rank-view.js';
 import FilmsListExtraView from '../view/films-list-extra-view.js';
+import { isFilmCommentedZeroTimes, isFilmRatedZero, areFilmRatingsEqual, areFilmCommentsCountEqual } from '../utils/film.js';
+import { getRandomInteger } from '../utils/common.js';
 
 const FILMS_COUNT_PER_STEP = 5;
 const TimeLimit = {
@@ -51,6 +53,8 @@ export default class BoardPresenter {
   #filterType = FilterType.ALL;
   #isFilmsLoading = true;
   #isFooterRenderedOnce = false;
+  #areFilmRatingsEqual = false;
+  #areFilmCommentsCountEqual = false;
 
   #boardContainer = null;
   #headerContainer = null;
@@ -139,28 +143,54 @@ export default class BoardPresenter {
       this.#renderShowMoreButton();
     }
 
-    if (this.#mostRatedFilmsListComponent === null) {
-      this.#renderMostRatedFilms();
-    }
 
+    this.#renderMostRatedFilms();
     this.#renderMostCommentedFilms();
   };
 
   #renderMostRatedFilms = () => {
+    const films = this.#filmsModel.films;
+    let extraMostRatedFilms = [];
+
+    if (films.every(isFilmRatedZero)) {
+      return;
+    }
+
+    if (areFilmRatingsEqual(films)) {
+      extraMostRatedFilms = [...films].splice(getRandomInteger(0, films.length - EXTRA_FILMS_COUNT), EXTRA_FILMS_COUNT);
+      this.#areFilmRatingsEqual = true;
+    }
+
+    if (!this.#areFilmRatingsEqual) {
+      extraMostRatedFilms = [...films].sort(sortFilmsByRating).slice(0, EXTRA_FILMS_COUNT);
+    }
+
     this.#mostRatedFilmsListComponent = new FilmsListExtraView(ExtraBlockType.TOP_RATED);
     render(this.#mostRatedFilmsListComponent, this.#boardComponent.element);
     render(this.#mostRatedFilmsContainerComponent, this.#mostRatedFilmsListComponent.element);
-    const extraMostRatedFilms = [...this.#filmsModel.films].sort(sortFilmsByRating).slice(0, EXTRA_FILMS_COUNT);
-
     this.#renderFilms(extraMostRatedFilms, this.#mostRatedFilmsContainerComponent.element, this.#mostRatedFilmPresenter);
   };
 
   #renderMostCommentedFilms = () => {
+    const films = this.#filmsModel.films;
+    let extraMostCommentedFilms = [];
+
+    if (films.every(isFilmCommentedZeroTimes)) {
+      return;
+    }
+
+    if (areFilmCommentsCountEqual(films)) {
+      extraMostCommentedFilms = [...films].splice(getRandomInteger(0, films.length - EXTRA_FILMS_COUNT), EXTRA_FILMS_COUNT);
+      this.#areFilmCommentsCountEqual = true;
+    }
+
+    if (!this.#areFilmCommentsCountEqual) {
+      extraMostCommentedFilms = [...films].sort(sortFilmsByMostComments).slice(0, EXTRA_FILMS_COUNT);
+    }
+
     this.#mostCommentedFilmsListComponent = new FilmsListExtraView(ExtraBlockType.MOST_COMMENTED);
     render(this.#mostCommentedFilmsListComponent, this.#boardComponent.element);
     render(this.#mostCommentedFilmsContainerComponent, this.#mostCommentedFilmsListComponent.element);
-    const extraMostCommentedFilms = [...this.#filmsModel.films].sort(sortFilmsByMostComments).slice(0, EXTRA_FILMS_COUNT);
-
     this.#renderFilms(extraMostCommentedFilms, this.#mostCommentedFilmsContainerComponent.element, this.#mostCommentedFilmPresenter);
   };
 
@@ -194,15 +224,15 @@ export default class BoardPresenter {
   #clearBoard = ({resetRenderedFilmsCount = false, resetSortType = false} = {}) => {
     const filmsCount = this.films.length;
 
-    this.#filmPresenters.forEach((presenter) => presenter !== this.#mostRatedFilmPresenter ? presenter.forEach((item) => item.destroy()) : '');
-    this.#filmPresenters.forEach((presenter) => presenter !== this.#mostRatedFilmPresenter ? presenter.clear() : '');
+    this.#filmPresenters.forEach((presenter) => presenter.forEach((item) => item.destroy()));
+    this.#filmPresenters.forEach((presenter) => presenter.clear());
 
     remove(this.#sortComponent);
     remove(this.#userRankComponent);
     remove(this.#filmsEmptyListComponent);
     remove(this.#showMoreButtonComponent);
     remove(this.#mostCommentedFilmsListComponent);
-    // remove(this.#mostRatedFilmsListComponent);
+    remove(this.#mostRatedFilmsListComponent);
 
     if (resetRenderedFilmsCount) {
       this.#renderedFilmsCount = FILMS_COUNT_PER_STEP;
@@ -325,6 +355,6 @@ export default class BoardPresenter {
   };
 
   #onPopupModeChange = () => {
-    this.#filmPresenters.forEach((presenter) => presenter !== this.#mostRatedFilmPresenter ? presenter.forEach((item) => item.resetPopup()) : '');
+    this.#filmPresenters.forEach((presenter) => presenter.forEach((item) => item.resetPopup()));
   };
 }

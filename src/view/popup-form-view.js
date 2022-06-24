@@ -1,4 +1,4 @@
-import { humanizeDate, normalizeFilmRuntime } from '../utils/film.js';
+import { humanizeCommentPostDate, humanizeDate, normalizeFilmRuntime } from '../utils/film.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import he from 'he';
 
@@ -30,7 +30,7 @@ const createPopupCommentsTemplate = (comments, isCommentDeleting, deletingCommen
                 <p class="film-details__comment-text">${he.encode(comment)}</p>
                 <p class="film-details__comment-info">
                   <span class="film-details__comment-author">${author}</span>
-                  <span class="film-details__comment-day">${humanizeDate(commentDate, 'YYYY/MM/DD HH:mm')}</span>
+                  <span class="film-details__comment-day">${humanizeCommentPostDate(commentDate)}</span>
                   <button
                   class="film-details__comment-delete"
                   data-id="${id}"
