@@ -1,3 +1,4 @@
+import { getRandomInteger } from './common.js';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
@@ -61,4 +62,6 @@ const areFilmCommentsCountEqual = (films) => {
   return +Object.values(equalCommentsCount) === films.length;
 };
 
-export {areFilmCommentsCountEqual, humanizeDate, normalizeFilmRuntime, truncFilmDescription, isFilmRatedZero, isFilmCommentedZeroTimes, humanizeCommentPostDate, areFilmRatingsEqual};
+const getRandomFilms = (films, count) => [...films].splice( getRandomInteger(0, films.length - count), count);
+
+export {getRandomFilms, areFilmCommentsCountEqual, humanizeDate, normalizeFilmRuntime, truncFilmDescription, isFilmRatedZero, isFilmCommentedZeroTimes, humanizeCommentPostDate, areFilmRatingsEqual};

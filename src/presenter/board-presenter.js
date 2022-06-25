@@ -14,8 +14,7 @@ import FooterView from '../view/footer-view.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import UserRankView from '../view/user-rank-view.js';
 import FilmsListExtraView from '../view/films-list-extra-view.js';
-import { isFilmCommentedZeroTimes, isFilmRatedZero, areFilmRatingsEqual, areFilmCommentsCountEqual } from '../utils/film.js';
-import { getRandomInteger } from '../utils/common.js';
+import { isFilmCommentedZeroTimes, isFilmRatedZero, areFilmRatingsEqual, areFilmCommentsCountEqual, getRandomFilms } from '../utils/film.js';
 
 const FILMS_COUNT_PER_STEP = 5;
 const TimeLimit = {
@@ -143,55 +142,67 @@ export default class BoardPresenter {
       this.#renderShowMoreButton();
     }
 
-
     this.#renderMostRatedFilms();
     this.#renderMostCommentedFilms();
   };
 
+  #getExtraFilmsList = (films, title) => {
+    let extraFilms = [...films];
+
+    switch (title) {
+      case ExtraBlockType.TOP_RATED:
+        extraFilms = extraFilms.sort(sortFilmsByRating)
+          .slice(0, EXTRA_FILMS_COUNT);
+
+        if (extraFilms.every(isFilmRatedZero)) {
+          return [];
+        }
+
+        if (areFilmRatingsEqual(extraFilms)) {
+          extraFilms = getRandomFilms(films, EXTRA_FILMS_COUNT);
+          this.#areFilmRatingsEqual = true;
+        }
+
+        break;
+      case ExtraBlockType.MOST_COMMENTED:
+        extraFilms = extraFilms.sort(sortFilmsByMostComments)
+          .slice(0, EXTRA_FILMS_COUNT);
+
+        if (films.every(isFilmCommentedZeroTimes)) {
+          return [];
+        }
+
+        if (areFilmCommentsCountEqual(films)) {
+          extraFilms = getRandomFilms(films, EXTRA_FILMS_COUNT);
+          this.#areFilmCommentsCountEqual = true;
+        }
+
+        break;
+    }
+
+    return extraFilms;
+  };
+
   #renderMostRatedFilms = () => {
-    const films = this.#filmsModel.films;
-    let extraMostRatedFilms = [];
+    const extraMostRatedFilms = this.#getExtraFilmsList(this.#filmsModel.films, ExtraBlockType.TOP_RATED);
 
-    if (films.every(isFilmRatedZero)) {
-      return;
+    if (extraMostRatedFilms.length) {
+      this.#mostRatedFilmsListComponent = new FilmsListExtraView(ExtraBlockType.TOP_RATED);
+      render(this.#mostRatedFilmsListComponent, this.#boardComponent.element);
+      render(this.#mostRatedFilmsContainerComponent, this.#mostRatedFilmsListComponent.element);
+      this.#renderFilms(extraMostRatedFilms, this.#mostRatedFilmsContainerComponent.element, this.#mostRatedFilmPresenter);
     }
-
-    if (areFilmRatingsEqual(films)) {
-      extraMostRatedFilms = [...films].splice(getRandomInteger(0, films.length - EXTRA_FILMS_COUNT), EXTRA_FILMS_COUNT);
-      this.#areFilmRatingsEqual = true;
-    }
-
-    if (!this.#areFilmRatingsEqual) {
-      extraMostRatedFilms = [...films].sort(sortFilmsByRating).slice(0, EXTRA_FILMS_COUNT);
-    }
-
-    this.#mostRatedFilmsListComponent = new FilmsListExtraView(ExtraBlockType.TOP_RATED);
-    render(this.#mostRatedFilmsListComponent, this.#boardComponent.element);
-    render(this.#mostRatedFilmsContainerComponent, this.#mostRatedFilmsListComponent.element);
-    this.#renderFilms(extraMostRatedFilms, this.#mostRatedFilmsContainerComponent.element, this.#mostRatedFilmPresenter);
   };
 
   #renderMostCommentedFilms = () => {
-    const films = this.#filmsModel.films;
-    let extraMostCommentedFilms = [];
+    const extraMostCommentedFilms = this.#getExtraFilmsList(this.#filmsModel.films, ExtraBlockType.MOST_COMMENTED);
 
-    if (films.every(isFilmCommentedZeroTimes)) {
-      return;
+    if (extraMostCommentedFilms.length) {
+      this.#mostCommentedFilmsListComponent = new FilmsListExtraView(ExtraBlockType.MOST_COMMENTED);
+      render(this.#mostCommentedFilmsListComponent, this.#boardComponent.element);
+      render(this.#mostCommentedFilmsContainerComponent, this.#mostCommentedFilmsListComponent.element);
+      this.#renderFilms(extraMostCommentedFilms, this.#mostCommentedFilmsContainerComponent.element, this.#mostCommentedFilmPresenter);
     }
-
-    if (areFilmCommentsCountEqual(films)) {
-      extraMostCommentedFilms = [...films].splice(getRandomInteger(0, films.length - EXTRA_FILMS_COUNT), EXTRA_FILMS_COUNT);
-      this.#areFilmCommentsCountEqual = true;
-    }
-
-    if (!this.#areFilmCommentsCountEqual) {
-      extraMostCommentedFilms = [...films].sort(sortFilmsByMostComments).slice(0, EXTRA_FILMS_COUNT);
-    }
-
-    this.#mostCommentedFilmsListComponent = new FilmsListExtraView(ExtraBlockType.MOST_COMMENTED);
-    render(this.#mostCommentedFilmsListComponent, this.#boardComponent.element);
-    render(this.#mostCommentedFilmsContainerComponent, this.#mostCommentedFilmsListComponent.element);
-    this.#renderFilms(extraMostCommentedFilms, this.#mostCommentedFilmsContainerComponent.element, this.#mostCommentedFilmPresenter);
   };
 
   #renderNoFilms = () => {
